@@ -1,16 +1,19 @@
-// Cargar datos del JSON
+// Charger les données JSON
 fetch("donnees.json")
     .then(response => response.json())
     .then(data => {
-        console.log("Datos cargados:", data);
-
-        // Ejemplo simple: mostrar todos los eventos
         const calendario = document.getElementById("calendario");
+
+        // Vider la div au cas où
+        calendario.innerHTML = "";
+
+        // Créer un carré pour chaque jour
         data.forEach(item => {
             const div = document.createElement("div");
             div.className = "day";
-            div.textContent = item.Fechas;  // MM-DD
-            div.title = item.evenement;          // nombre del santo
+            div.textContent = item.date_courte;  // Affiche MM-DD pour l'instant
+            div.title = item.evenement;          // Info au survol
+            div.onclick = () => alert(item.evenement); // Affiche l'événement au clic
             calendario.appendChild(div);
         });
     })
