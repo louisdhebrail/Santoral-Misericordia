@@ -3,17 +3,20 @@ fetch("donnees.json")
     .then(response => response.json())
     .then(data => {
         const calendario = document.getElementById("calendario");
-
-        // Vider la div au cas où
-        calendario.innerHTML = "";
+        calendario.innerHTML = ""; // Vider avant de remplir
 
         // Créer un carré pour chaque jour
         data.forEach(item => {
             const div = document.createElement("div");
             div.className = "day";
-            div.textContent = item.date_courte;  // Affiche MM-DD pour l'instant
-            div.title = item.evenement;          // Info au survol
-            div.onclick = () => alert(item.evenement); // Affiche l'événement au clic
+
+            // Afficher juste le jour "DD" ou "MM-DD" si tu préfères
+            div.textContent = item.Fechas.slice(3);
+
+            // Survol et clic avec le nom du saint/fête
+            div.title = item["Misericordia Chile"];
+            div.onclick = () => alert(item["Misericordia Chile"]);
+
             calendario.appendChild(div);
         });
     })
