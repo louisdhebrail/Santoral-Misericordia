@@ -1,0 +1,34 @@
+body {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+    background: #f9f9f9;
+}
+
+h1 {
+    color: #333;
+    text-align: center;
+}
+
+#calendario {
+    margin-top: 20px;
+}
+
+.day {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    text-align: center;
+    margin: 2px;
+    border: 1px solid #ccc;
+    cursor: pointer;
+}
+
+.day:hover {
+    background-color: #eee;
+}
+
+.event {
+    color: #d00;
+    font-weight: bold;
+}
