@@ -14,8 +14,8 @@ fetch("donnees.json")
             div.textContent = item.Fechas.slice(3);
 
             // Survol et clic avec le nom du saint/fête
-            div.title = item["Misericordia Chile"];
-            div.onclick = () => alert(item["Misericordia Chile"]);
+            div.title = item["Misericordia chile"];
+            div.onclick = () => alert(item["Misericordia chile"]);
 
             calendario.appendChild(div);
         });
