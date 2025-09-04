@@ -1,18 +1,23 @@
-<!DOCTYPE html>
-<html lang="es">
-
-<head>
-    <meta charset="UTF-8">
-    <title>Santoral Misericordia</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-
 <body>
     <h1>Santoral Misericordia</h1>
-    <h2 id="mois"></h2> <!-- Le nom du mois apparaîtra ici -->
+
+    <div id="header">
+        <button id="prev">←</button>
+        <h2 id="mois"></h2>
+        <button id="next">→</button>
+    </div>
+
+    <div id="jours-semaine">
+        <div>Lun</div>
+        <div>Mar</div>
+        <div>Mié</div>
+        <div>Jue</div>
+        <div>Vie</div>
+        <div>Sáb</div>
+        <div>Dom</div>
+    </div>
+
     <div id="calendario"></div>
 
     <script src="script.js"></script>
 </body>
-
-</html>
