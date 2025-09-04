@@ -48,5 +48,13 @@ function afficherJour(index) {
     const nomMois = moisNoms[mois - 1];
     document.getElementById("dateLongue").textContent = `${nomJour} ${jour} de ${nomMois}`;
 
-    document.getElementById("contenu").textContent = item["Misericordia chile"];
+    // Contenu sous le titre
+    const contenu = `
+    <p><strong>Santo del día:</strong><br>${item["Misericordia chile"] || ""}</p>
+    <p><strong>Ayuno:</strong><br>${item["Ayuno"] || ""}</p>
+    <p><strong>En el Breviario Castellano:</strong><br>${item["En el Breviario Castellano"] || ""}</p>
+    <p><strong>Celebración:</strong><br>${item["Celebracion Celebration"] || ""}</p>
+    <p><strong>Color:</strong><br>${item["Couleur / Color"] || ""}</p>
+  `;
+    document.getElementById("contenu").innerHTML = contenu;
 }

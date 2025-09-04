@@ -88,3 +88,9 @@ document.getElementById("next").onclick = () => {
     }
     afficherCalendrier(currentMonth, currentYear);
 };
+// Bouton Hoy
+document.getElementById("today").onclick = () => {
+    currentMonth = today.getMonth() + 1;
+    currentYear = today.getFullYear();
+    afficherCalendrier(currentMonth, currentYear);
+};
