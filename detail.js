@@ -48,13 +48,24 @@ function afficherJour(index) {
     const nomMois = moisNoms[mois - 1];
     document.getElementById("dateLongue").textContent = `${nomJour} ${jour} de ${nomMois}`;
 
-    // Contenu sous le titre
-    const contenu = `
-    <p><strong>Santo del día:</strong><br>${item["Misericordia chile"] || ""}</p>
-    <p><strong>Ayuno:</strong><br>${item["Ayuno"] || ""}</p>
-    <p><strong>En el Breviario Castellano:</strong><br>${item["En el Breviario Castellano"] || ""}</p>
-    <p><strong>Celebración:</strong><br>${item["Celebracion Celebration"] || ""}</p>
-    <p><strong>Color:</strong><br>${item["Couleur / Color"] || ""}</p>
+    const contenuHtml = `
+    <div class="detail-container">
+      <div class="detail-title">Santo del día</div>
+      <div class="detail-box">${item["Misericordia chile"] || ""}</div>
+
+      <div class="detail-title">Ayuno</div>
+      <div class="detail-box">${item["Ayuno"] || ""}</div>
+
+      <div class="detail-title">En el Breviario Castellano</div>
+      <div class="detail-box">${item["En el Breviario Castellano"] || ""}</div>
+
+      <div class="detail-title">Celebración</div>
+      <div class="detail-box">${item["Celebracion Celebration"] || ""}</div>
+
+      <div class="detail-title">Color</div>
+      <div class="detail-box">${item["Couleur / Color"] || ""}</div>
+    </div>
   `;
-    document.getElementById("contenu").innerHTML = contenu;
+    document.getElementById("contenu").innerHTML = contenuHtml;
 }
+

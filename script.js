@@ -33,7 +33,6 @@ function afficherCalendrier(month, year) {
     // Trouver le premier jour du mois
     const premierJour = new Date(`${year}-${String(month).padStart(2, "0")}-01`);
     let startDay = premierJour.getDay(); // 0=dimanche, 1=lundi...
-    if (startDay === 0) startDay = 7; // dimanche à la fin
 
     calendario.innerHTML = "";
 
