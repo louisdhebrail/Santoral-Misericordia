@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Detalle del día</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <h1>Detalle del día</h1>
+    <div id="detalle"></div>
+
+    <script>
+        // Récupérer les paramètres de l’URL (ex: ?date=03-15)
+        const params = new URLSearchParams(window.location.search);
+        const fecha = params.get("date");
+
+        // Charger le JSON et afficher seulement le jour demandé
+        fetch("donnees.json")
+            .then(r => r.json())
+            .then(data => {
+                const dia = data.find(item => item.Fechas === fecha);
+                if (dia) {
+                    document.getElementById("detalle").innerHTML = `
+            <h2>${dia.Fechas}</h2>
+            <p>${dia["Misericordia Chile"]}</p>
+          `;
+                } else {
+                    document.getElementById("detalle").textContent = "No hay información.";
+                }
+            });
+    </script>
+</body>
+
+</html>

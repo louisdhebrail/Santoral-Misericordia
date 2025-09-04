@@ -1,21 +1,42 @@
-// Charger les données JSON
+// Noms des mois en espagnol
+const moisNoms = [
+    "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+];
+
+// Récupérer le mois courant
+const today = new Date();
+const currentMonth = today.getMonth() + 1; // 1 à 12
+
 fetch("donnees.json")
     .then(response => response.json())
     .then(data => {
         const calendario = document.getElementById("calendario");
-        calendario.innerHTML = ""; // Vider avant de remplir
+        const moisTitre = document.getElementById("mois");
 
-        // Créer un carré pour chaque jour
-        data.forEach(item => {
+        // Afficher le nom du mois
+        moisTitre.textContent = moisNoms[currentMonth - 1];
+
+        // Filtrer seulement les jours du mois courant
+        const joursDuMois = data.filter(item => {
+            const mois = parseInt(item.Fechas.slice(0, 2)); // MM-DD
+            return mois === currentMonth;
+        });
+
+        // Vider la div avant d'ajouter
+        calendario.innerHTML = "";
+
+        // Créer les carrés
+        joursDuMois.forEach(item => {
             const div = document.createElement("div");
             div.className = "day";
+            div.textContent = item.Fechas.slice(3); // juste le jour (DD)
+            div.title = item["Misericordia Chile"];
 
-            // Afficher juste le jour "DD" ou "MM-DD" si tu préfères
-            div.textContent = item.Fechas.slice(3);
-
-            // Survol et clic avec le nom du saint/fête
-            div.title = item["Misericordia chile"];
-            div.onclick = () => alert(item["Misericordia chile"]);
+            // Quand on clique → ouvrir la page détail
+            div.onclick = () => {
+                window.location.href = `detail.html?date=${item.Fechas}`;
+            };
 
             calendario.appendChild(div);
         });
