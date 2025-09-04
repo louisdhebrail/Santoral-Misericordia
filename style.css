@@ -99,10 +99,12 @@ header {
 
 .arrow-left {
     border-right: 20px solid black;
+    left: 20px;
 }
 
 .arrow-right {
     border-left: 20px solid black;
+    right: 20px;
 }
 
 .arrow:hover {
