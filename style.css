@@ -1,34 +1,39 @@
 body {
     font-family: Arial, sans-serif;
+    background-color: #FFD100;
+    margin: 0;
     padding: 20px;
-    background: #f9f9f9;
-}
-
-h1 {
-    color: #333;
     text-align: center;
 }
 
+h1,
+h2 {
+    margin-bottom: 10px;
+}
+
 #calendario {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    /* 7 colonnes */
+    gap: 8px;
     margin-top: 20px;
 }
 
 .day {
-    display: inline-block;
-    width: 40px;
-    height: 40px;
-    line-height: 40px;
-    text-align: center;
-    margin: 2px;
-    border: 1px solid #ccc;
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
     cursor: pointer;
+    transition: transform 0.2s, background 0.2s;
+    font-weight: bold;
 }
 
 .day:hover {
-    background-color: #eee;
+    background: #ffe066;
+    transform: scale(1.05);
 }
 
-.event {
-    color: #d00;
-    font-weight: bold;
+.day.empty {
+    background: transparent;
+    cursor: default;
 }
