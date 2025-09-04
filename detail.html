@@ -3,34 +3,26 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Detalle del día</title>
+    <title>Santoral Misericordia - Detalle</title>
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-    <h1>Detalle del día</h1>
-    <div id="detalle"></div>
+    <header>
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT4H7YtK1RAKGXgjWoqWSnNDhJlliZM7oQA3A&s"
+            alt="Logo Misericordia" class="logo">
+        <h1>Santoral Misericordia</h1>
+    </header>
 
-    <script>
-        // Récupérer les paramètres de l’URL (ex: ?date=03-15)
-        const params = new URLSearchParams(window.location.search);
-        const fecha = params.get("date");
+    <div id="detail-header">
+        <button id="prevDay" class="arrow">←</button>
+        <h2 id="dateLongue"></h2>
+        <button id="nextDay" class="arrow">→</button>
+    </div>
 
-        // Charger le JSON et afficher seulement le jour demandé
-        fetch("donnees.json")
-            .then(r => r.json())
-            .then(data => {
-                const dia = data.find(item => item.Fechas === fecha);
-                if (dia) {
-                    document.getElementById("detalle").innerHTML = `
-            <h2>${dia.Fechas}</h2>
-            <p>${dia["Misericordia chile"]}</p>
-          `;
-                } else {
-                    document.getElementById("detalle").textContent = "No hay información.";
-                }
-            });
-    </script>
+    <div id="contenu"></div>
+
+    <script src="detail.js"></script>
 </body>
 
 </html>
