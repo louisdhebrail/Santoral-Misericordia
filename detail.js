@@ -23,13 +23,13 @@ fetch("donnees.json")
         afficherJour(indexCourant);
 
         // Navigation
-        document.getElementById("prevDay").onclick = () => {
+        document.getElementById("prev").onclick = () => {
             if (indexCourant > 0) {
                 indexCourant--;
                 afficherJour(indexCourant);
             }
         };
-        document.getElementById("nextDay").onclick = () => {
+        document.getElementById("next").onclick = () => {
             if (indexCourant < jsonData.length - 1) {
                 indexCourant++;
                 afficherJour(indexCourant);
