@@ -13,7 +13,7 @@ let jsonData = [];
 let indexCourant = -1;
 
 // Charger les données
-fetch("../data/donnees.json")
+fetch("./data/donnees.json")
     .then(res => res.json())
     .then(data => {
         jsonData = data;

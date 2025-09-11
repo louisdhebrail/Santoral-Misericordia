@@ -10,7 +10,7 @@ let currentYear = today.getFullYear();
 let jsonData = [];
 
 // Charger le JSON une seule fois
-fetch("../data/donnees.json")
+fetch("./data/donnees.json")
     .then(response => response.json())
     .then(data => {
         jsonData = data;
