@@ -10,7 +10,7 @@ let currentYear = today.getFullYear();
 let jsonData = [];
 
 // Charger le JSON une seule fois
-fetch("donnees.json")
+fetch("./data/donnees.json")
     .then(response => response.json())
     .then(data => {
         jsonData = data;
@@ -32,12 +32,12 @@ function afficherCalendrier(month, year) {
 
     // Trouver le premier jour du mois
     const premierJour = new Date(`${year}-${String(month).padStart(2, "0")}-01`);
-    let startDay = premierJour.getDay(); // 0=dimanche, 1=lundi...
+    let startDay = premierJour.getDay() + 1; // 0=dimanche, 1=lundi...
 
     calendario.innerHTML = "";
 
     // Cases vides avant le 1er jour
-    for (let i = 1; i < startDay; i++) {
+    for (let i = 0; i < startDay; i++) {
         const empty = document.createElement("div");
         empty.className = "day empty";
         calendario.appendChild(empty);
@@ -67,6 +67,12 @@ function afficherCalendrier(month, year) {
 
         calendario.appendChild(div);
     });
+    const todayBtn = document.getElementById("today");
+    if (month === today.getMonth() + 1 && year === today.getFullYear()) {
+        todayBtn.style.display = "none";   // on est déjà au mois actuel → cacher
+    } else {
+        todayBtn.style.display = "block";  // autre mois → afficher
+    }
 }
 
 // Flèches navigation

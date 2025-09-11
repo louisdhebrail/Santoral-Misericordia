@@ -13,7 +13,7 @@ let jsonData = [];
 let indexCourant = -1;
 
 // Charger les données
-fetch("donnees.json")
+fetch("../data/donnees.json")
     .then(res => res.json())
     .then(data => {
         jsonData = data;
@@ -49,23 +49,34 @@ function afficherJour(index) {
     document.getElementById("dateLongue").textContent = `${nomJour} ${jour} de ${nomMois}`;
 
     const contenuHtml = `
-    <div class="detail-container">
+  <div class="detail-container">
+    ${item["Misericordia chile"] ? `
       <div class="detail-title">Santo del día</div>
-      <div class="detail-box">${item["Misericordia chile"] || ""}</div>
+      <div class="detail-box">${item["Misericordia chile"]}</div>
+    ` : ''}
 
+    ${item["Ayuno"] ? `
       <div class="detail-title">Ayuno</div>
-      <div class="detail-box">${item["Ayuno"] || ""}</div>
+      <div class="detail-box">${item["Ayuno"]}</div>
+    ` : ''}
 
+    ${item["En el Breviario Castellano"] ? `
       <div class="detail-title">En el Breviario Castellano</div>
-      <div class="detail-box">${item["En el Breviario Castellano"] || ""}</div>
+      <div class="detail-box">${item["En el Breviario Castellano"]}</div>
+    ` : ''}
 
+    ${item["Celebracion Celebration"] ? `
       <div class="detail-title">Celebración</div>
-      <div class="detail-box">${item["Celebracion Celebration"] || ""}</div>
+      <div class="detail-box">${item["Celebracion Celebration"]}</div>
+    ` : ''}
 
+    ${item["Couleur / Color"] ? `
       <div class="detail-title">Color</div>
-      <div class="detail-box">${item["Couleur / Color"] || ""}</div>
-    </div>
-  `;
+      <div class="detail-box">${item["Couleur / Color"]}</div>
+    ` : ''}
+  </div>
+`;
+
     document.getElementById("contenu").innerHTML = contenuHtml;
 }
 
