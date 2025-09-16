@@ -190,6 +190,13 @@ header {
     /* box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2); */
 }
 
+#contenu-container {
+    width: 100vw;
+    overflow: hidden;
+    position: relative;
+}
+
+
 #contenu p {
     background: white;
 }
