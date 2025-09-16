@@ -99,3 +99,62 @@ document.getElementById("today").onclick = () => {
     currentYear = today.getFullYear();
     afficherCalendrier(currentMonth, currentYear);
 };
+
+// ==== Gestion du swipe avec effet visuel ====
+const calendar = document.getElementById("calendario");
+let startX = 0, deltaX = 0, isSwiping = false;
+
+calendar.addEventListener("touchstart", e => {
+    startX = e.touches[0].clientX;
+    isSwiping = true;
+    calendar.style.transition = "none"; // pas d’anim pendant le drag
+});
+
+calendar.addEventListener("touchmove", e => {
+    if (!isSwiping) return;
+    const currentX = e.touches[0].clientX;
+    deltaX = currentX - startX;
+    calendar.style.transform = `translateX(${deltaX}px)`;
+});
+
+calendar.addEventListener("touchend", () => {
+    if (!isSwiping) return;
+    isSwiping = false;
+
+    // swipe validé si > 50px
+    if (Math.abs(deltaX) > 50) {
+        if (deltaX < 0) {
+            // gauche → mois suivant
+            calendar.style.transition = "transform 0.3s ease";
+            calendar.style.transform = "translateX(-100vw)";
+            setTimeout(() => {
+                document.getElementById("next").click(); // réutilise ton code existant
+                calendar.style.transition = "none";
+                calendar.style.transform = "translateX(100vw)";
+                requestAnimationFrame(() => {
+                    calendar.style.transition = "transform 0.3s ease";
+                    calendar.style.transform = "translateX(0)";
+                });
+            }, 300);
+        } else {
+            // droite → mois précédent
+            calendar.style.transition = "transform 0.3s ease";
+            calendar.style.transform = "translateX(100vw)";
+            setTimeout(() => {
+                document.getElementById("prev").click();
+                calendar.style.transition = "none";
+                calendar.style.transform = "translateX(-100vw)";
+                requestAnimationFrame(() => {
+                    calendar.style.transition = "transform 0.3s ease";
+                    calendar.style.transform = "translateX(0)";
+                });
+            }, 300);
+        }
+    } else {
+        // retour au centre si swipe trop court
+        calendar.style.transition = "transform 0.3s ease";
+        calendar.style.transform = "translateX(0)";
+    }
+
+    deltaX = 0;
+});
