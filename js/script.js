@@ -122,7 +122,7 @@ calendar.addEventListener("touchend", () => {
     isSwiping = false;
 
     // swipe validé si > 50px
-    if (Math.abs(deltaX) > 50) {
+    if (Math.abs(deltaX) > 10) {
         if (deltaX < 0) {
             // gauche → mois suivant
             calendar.style.transition = "transform 0.3s ease";
@@ -131,6 +131,9 @@ calendar.addEventListener("touchend", () => {
                 document.getElementById("next").click(); // réutilise ton code existant
                 calendar.style.transition = "none";
                 calendar.style.transform = "translateX(100vw)";
+
+                // force le navigateur à appliquer le style précédent
+                calendar.offsetHeight; // lecture forcée → repaint
                 requestAnimationFrame(() => {
                     calendar.style.transition = "transform 0.3s ease";
                     calendar.style.transform = "translateX(0)";
@@ -144,6 +147,7 @@ calendar.addEventListener("touchend", () => {
                 document.getElementById("prev").click();
                 calendar.style.transition = "none";
                 calendar.style.transform = "translateX(-100vw)";
+                calendar.offsetHeight; // lecture forcée → repaint
                 requestAnimationFrame(() => {
                     calendar.style.transition = "transform 0.3s ease";
                     calendar.style.transform = "translateX(0)";
