@@ -23,19 +23,20 @@ body {
 
 .header {
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
     position: relative;
     font-size: 10px;
 }
 
 h1 {
-    font-size: clamp(27px, 6vw, 45px);
+    font-size: clamp(35px, 8vw, 55px);
     font-family: 'NC';
     font-weight: 700;
     text-transform: uppercase;
     display: flex;
-    justify-content: center;
+    justify-content: left;
+    margin-left: 6vw;
 }
 
 h2 {
@@ -116,7 +117,7 @@ h2 {
 
 header {
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
     position: relative;
     font-size: 10px;
@@ -126,14 +127,14 @@ header {
 .logo {
     height: clamp(65px, 12vw, 90px);
     width: auto;
-    position: absolute;
-    right: clamp(1px, 1.5vw, 20px);
+    position: relative;
+    /* right: clamp(1px, 1.5vw, 20px); */
 }
 
 .logoleft {
     width: clamp(65px, 12vw, 90px);
-    position: absolute;
-    left: clamp(1px, 1.5vw, 20px);
+    position: relative;
+    /* left: clamp(1px, 1.5vw, 20px); */
 }
 
 #detail-header {
@@ -193,7 +194,7 @@ header {
 
 .detail-box {
     background: white;
-    padding: 2px;
+    padding: 4px;
     border-radius: 12px;
     margin-bottom: 15px;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
