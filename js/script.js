@@ -14,15 +14,19 @@ fetch("./data/donnees.json")
     .then(response => response.json())
     .then(data => {
         jsonData = data;
-        afficherCalendrier(currentMonth, currentYear);
+        afficherTousLesCalendriers(currentMonth, currentYear);
     })
     .catch(err => console.error("Error al cargar JSON:", err));
 
-function afficherCalendrier(month, year) {
-    const calendario = document.getElementById("calendario");
-    const moisTitre = document.getElementById("mois");
+function afficherCalendrier(month, year, cibleId) {
+    const calendario = document.getElementById(cibleId);
+    if (!calendario) return;
 
-    moisTitre.textContent = `${moisNoms[month - 1]} ${year}`;
+    if (cibleId === "calendario-current") {
+        const moisTitre = document.getElementById("mois");
+        moisTitre.textContent = `${moisNoms[month - 1]} ${year}`;
+    }
+
 
     // Filtrer les jours du mois demandé
     const joursDuMois = jsonData.filter(item => {
@@ -31,8 +35,8 @@ function afficherCalendrier(month, year) {
     });
 
     // Trouver le premier jour du mois
-    const premierJour = new Date(`${year}-${String(month).padStart(2, "0")}-01`);
-    let startDay = premierJour.getDay() + 1; // 0=dimanche, 1=lundi...
+    const premierJour = new Date(year, month - 1, 1);
+    let startDay = premierJour.getDay(); // 0=dimanche, 1=lundi...
 
     calendario.innerHTML = "";
 
@@ -67,13 +71,37 @@ function afficherCalendrier(month, year) {
 
         calendario.appendChild(div);
     });
+}
+function afficherTousLesCalendriers(month, year) {
+    // Mois précédent
+    let prevMonth = month - 1;
+    let prevYear = year;
+    if (prevMonth < 1) {
+        prevMonth = 12;
+        prevYear--;
+    }
+
+    // Mois suivant
+    let nextMonth = month + 1;
+    let nextYear = year;
+    if (nextMonth > 12) {
+        nextMonth = 1;
+        nextYear++;
+    }
+
+    afficherCalendrier(prevMonth, prevYear, "calendario-prev");
+    afficherCalendrier(month, year, "calendario-current");
+    afficherCalendrier(nextMonth, nextYear, "calendario-next");
+
+    // Affiche/cacher le bouton "Hoy"
     const todayBtn = document.getElementById("today");
     if (month === today.getMonth() + 1 && year === today.getFullYear()) {
-        todayBtn.style.display = "none";   // on est déjà au mois actuel → cacher
+        todayBtn.style.display = "none";
     } else {
-        todayBtn.style.display = "block";  // autre mois → afficher
+        todayBtn.style.display = "block";
     }
 }
+document.getElementById('calendario-slider').style.transform = 'translateX(-100vw)';
 
 // Flèches navigation
 document.getElementById("prev").onclick = () => {
@@ -82,7 +110,7 @@ document.getElementById("prev").onclick = () => {
         currentMonth = 12;
         currentYear--;
     }
-    afficherCalendrier(currentMonth, currentYear);
+    afficherTousLesCalendriers(currentMonth, currentYear);
 };
 
 document.getElementById("next").onclick = () => {
@@ -91,17 +119,17 @@ document.getElementById("next").onclick = () => {
         currentMonth = 1;
         currentYear++;
     }
-    afficherCalendrier(currentMonth, currentYear);
+    afficherTousLesCalendriers(currentMonth, currentYear);
 };
 // Bouton Hoy
 document.getElementById("today").onclick = () => {
     currentMonth = today.getMonth() + 1;
     currentYear = today.getFullYear();
-    afficherCalendrier(currentMonth, currentYear);
+    afficherTousLesCalendriers(currentMonth, currentYear);
 };
 
 // ==== Gestion du swipe avec effet visuel ====
-const calendar = document.getElementById("calendario");
+const calendar = document.getElementById("calendario-slider");
 let startX = 0, deltaX = 0, isSwiping = false;
 
 calendar.addEventListener("touchstart", e => {
@@ -114,7 +142,7 @@ calendar.addEventListener("touchmove", e => {
     if (!isSwiping) return;
     const currentX = e.touches[0].clientX;
     deltaX = currentX - startX;
-    calendar.style.transform = `translateX(${deltaX}px)`;
+    calendar.style.transform = `translateX(calc(-100vw + ${deltaX}px))`;
 });
 
 calendar.addEventListener("touchend", () => {
@@ -126,38 +154,26 @@ calendar.addEventListener("touchend", () => {
         if (deltaX < 0) {
             // gauche → mois suivant
             calendar.style.transition = "transform 0.3s ease";
-            calendar.style.transform = "translateX(-100vw)";
+            calendar.style.transform = "translateX(-200vw)";
             setTimeout(() => {
                 document.getElementById("next").click(); // réutilise ton code existant
                 calendar.style.transition = "none";
-                calendar.style.transform = "translateX(100vw)";
-
-                // force le navigateur à appliquer le style précédent
-                calendar.offsetHeight; // lecture forcée → repaint
-                requestAnimationFrame(() => {
-                    calendar.style.transition = "transform 0.3s ease";
-                    calendar.style.transform = "translateX(0)";
-                });
+                calendar.style.transform = "translateX(-100vw)";
             }, 300);
         } else {
             // droite → mois précédent
             calendar.style.transition = "transform 0.3s ease";
-            calendar.style.transform = "translateX(100vw)";
+            calendar.style.transform = "translateX(0vw)";
             setTimeout(() => {
                 document.getElementById("prev").click();
                 calendar.style.transition = "none";
                 calendar.style.transform = "translateX(-100vw)";
-                calendar.offsetHeight; // lecture forcée → repaint
-                requestAnimationFrame(() => {
-                    calendar.style.transition = "transform 0.3s ease";
-                    calendar.style.transform = "translateX(0)";
-                });
             }, 300);
         }
     } else {
         // retour au centre si swipe trop court
         calendar.style.transition = "transform 0.3s ease";
-        calendar.style.transform = "translateX(0)";
+        calendar.style.transform = "translateX(-100vw)";
     }
 
     deltaX = 0;

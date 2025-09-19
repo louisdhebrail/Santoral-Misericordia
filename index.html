@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Santoral Misericordia</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, height=device-eight, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/css2?family=Lekton&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
 </head>
@@ -15,6 +15,11 @@
         <h1 class="titre">Santoral Misericordia</h1>
         <img src="media/logomisericordia.png" alt="Logo Misericordia" class="logo">
     </header>
+    <!-- <select id="lang">
+        <option value="es">Español</option>
+        <option value="fr">Français</option>
+        <option value="en">English</option>
+    </select> -->
 
 
     <div class="header" style="margin: 4vw;">
@@ -35,8 +40,12 @@
         <div>Sáb</div>
     </div>
 
-    <div id="calendario-container">
-        <div id="calendario"></div>
+    <div id="calendario-container" style="padding-bottom: 10px; overflow: hidden;">
+        <div id="calendario-slider" style="display: flex; transition: transform 0.3s;">
+            <div id="calendario-prev"></div>
+            <div id="calendario-current"></div>
+            <div id="calendario-next"></div>
+        </div>
     </div>
     <div class="today-btn" id="today">Hoy</div>
 

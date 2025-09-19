@@ -77,15 +77,25 @@ h2 {
     position: relative;
 }
 
-#calendario {
+#calendario-slider {
+    width: 300%;
+    display: flex;
+    transition: transform 0.3s;
+}
+
+#calendario-prev,
+#calendario-current,
+#calendario-next {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    row-gap: 9px;
+    grid-template-rows: repeat(6, 1fr);
+    row-gap: 15px;
     column-gap: 6px;
-    /* gap: 6px; */
     margin-top: 20px;
-    margin-left: 7px;
-    margin-right: 7px;
+    padding: 0px 7px;
+    width: 100vw;
+    box-sizing: border-box;
+    flex-shrink: 0;
     transition: transform 0.3s ease;
 }
 
