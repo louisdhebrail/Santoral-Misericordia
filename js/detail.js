@@ -41,13 +41,13 @@ function afficherJour(index, cibleID) {
   const item = jsonData[index];
   if (!item) return;
 
-  const [mois, jour] = item.Fechas.split("-").map(x => parseInt(x));
-  const dateObj = new Date(new Date().getFullYear(), mois - 1, jour);
-
-  const nomJour = joursSemaine[dateObj.getDay()];
-  const nomMois = moisNoms[mois - 1];
-  document.getElementById("dateLongue").textContent = `${nomJour} ${jour} de ${nomMois}`;
-
+  if (cibleID === "contenu-current") {
+    const [mois, jour] = item.Fechas.split("-").map(x => parseInt(x, 10));
+    const dateObj = new Date(Date.UTC(2025, mois - 1, jour)); // année arbitraire
+    const nomJour = joursSemaine[dateObj.getUTCDay()];
+    const nomMois = moisNoms[mois - 1];
+    document.getElementById("dateLongue").textContent = `${nomJour} ${jour} de ${nomMois}`;
+  }
   const contenuHtml = `
   <div class="detail-container">
     ${item["Misericordia chile"] ? `
