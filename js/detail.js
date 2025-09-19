@@ -20,24 +20,24 @@ fetch("./data/donnees.json")
 
     // Trouver l'index du jour courant
     indexCourant = data.findIndex(item => item.Fechas === dateParam);
-    afficherJour(indexCourant);
+    afficherTousLesJours(indexCourant);
 
     // Navigation
     document.getElementById("prev").onclick = () => {
       if (indexCourant > 0) {
         indexCourant--;
-        afficherJour(indexCourant);
+        afficherTousLesJours(indexCourant);
       }
     };
     document.getElementById("next").onclick = () => {
       if (indexCourant < jsonData.length - 1) {
         indexCourant++;
-        afficherJour(indexCourant);
+        afficherTousLesJours(indexCourant);
       }
     };
   });
 
-function afficherJour(index) {
+function afficherJour(index, cibleID) {
   const item = jsonData[index];
   if (!item) return;
 
@@ -77,12 +77,19 @@ function afficherJour(index) {
   </div>
 `;
 
-  document.getElementById("contenu").innerHTML = contenuHtml;
+  document.getElementById(cibleID).innerHTML = contenuHtml;
 }
 
+function afficherTousLesJours(index) {
+  afficherJour(index, "contenu-current");
+  afficherJour(index - 1, "contenu-prev");
+  afficherJour(index + 1, "contenu-next");
+}
+
+document.getElementById('contenu-slider').style.transform = 'translateX(-100vw)';
 
 // ==== Gestion du swipe avec effet visuel ====
-const calendar = document.getElementById("contenu");
+const calendar = document.getElementById("contenu-slider");
 let startX = 0, deltaX = 0, isSwiping = false;
 
 calendar.addEventListener("touchstart", e => {
@@ -95,7 +102,7 @@ calendar.addEventListener("touchmove", e => {
   if (!isSwiping) return;
   const currentX = e.touches[0].clientX;
   deltaX = currentX - startX;
-  calendar.style.transform = `translateX(${deltaX}px)`;
+  calendar.style.transform = `translateX(calc(-100vw + ${deltaX}px))`;
 });
 
 calendar.addEventListener("touchend", () => {
@@ -107,32 +114,32 @@ calendar.addEventListener("touchend", () => {
     if (deltaX < 0) {
       // gauche → mois suivant
       calendar.style.transition = "transform 0.3s ease";
-      calendar.style.transform = "translateX(-100vw)";
+      calendar.style.transform = "translateX(-200vw)";
       setTimeout(() => {
         document.getElementById("next").click(); // réutilise ton code existant
         calendar.style.transition = "none";
-        calendar.style.transform = "translateX(100vw)";
+        calendar.style.transform = "translateX(-100vw)";
 
-        // force le navigateur à appliquer le style précédent
-        calendar.offsetHeight; // lecture forcée → repaint
-        requestAnimationFrame(() => {
-          calendar.style.transition = "transform 0.3s ease";
-          calendar.style.transform = "translateX(0)";
-        });
+        // // force le navigateur à appliquer le style précédent
+        // calendar.offsetHeight; // lecture forcée → repaint
+        // requestAnimationFrame(() => {
+        //   calendar.style.transition = "transform 0.3s ease";
+        //   calendar.style.transform = "translateX(0)";
+        // });
       }, 300);
     } else {
       // droite → mois précédent
       calendar.style.transition = "transform 0.3s ease";
-      calendar.style.transform = "translateX(100vw)";
+      calendar.style.transform = "translateX(0vw)";
       setTimeout(() => {
         document.getElementById("prev").click();
         calendar.style.transition = "none";
         calendar.style.transform = "translateX(-100vw)";
-        calendar.offsetHeight; // lecture forcée → repaint
-        requestAnimationFrame(() => {
-          calendar.style.transition = "transform 0.3s ease";
-          calendar.style.transform = "translateX(0)";
-        });
+        // calendar.offsetHeight; // lecture forcée → repaint
+        // requestAnimationFrame(() => {
+        //   calendar.style.transition = "transform 0.3s ease";
+        //   calendar.style.transform = "translateX(0)";
+        // });
       }, 300);
     }
   } else {

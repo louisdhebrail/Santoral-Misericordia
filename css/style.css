@@ -189,10 +189,25 @@ header {
 }
 
 /* Contenu détail */
-#contenu {
+#contenu-container {
+    width: 100vw;
+    overflow: hidden;
+    position: relative;
+}
+
+#contenu-slider {
+    width: 300%;
+    display: flex;
+    transition: transform 0.3s;
+}
+
+#contenu-prev,
+#contenu-current,
+#contenu-next {
     display: flex;
     justify-content: center;
     text-align: center;
+    width: 100vw;
     /* max-width: 600px; */
     /* margin-left: 50px;
     margin-right: 50px; */
@@ -200,11 +215,6 @@ header {
     /* box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2); */
 }
 
-#contenu-container {
-    width: 100vw;
-    overflow: hidden;
-    position: relative;
-}
 
 
 #contenu p {
