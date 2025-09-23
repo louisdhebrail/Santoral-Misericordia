@@ -274,8 +274,12 @@ header {
 
 .back-arrow {
     display: flex;
-    position: relative;
+    position: absolute;
+    bottom: 15px;
     left: clamp(3px, 2.5vw, 25px);
     width: clamp(35px, 7vw, 45px);
+    background-color: rgba(128, 128, 128, 0.4);
+    border-radius: 50%;
     cursor: pointer;
+    transition: background-color 0.3s;
 }

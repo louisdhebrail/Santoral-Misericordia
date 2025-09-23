@@ -66,7 +66,7 @@ function afficherCalendrier(month, year, cibleId) {
 
         // Clic = aller à la page détail
         div.onclick = () => {
-            window.location.href = `detail.html?date=${item.Fechas}`;
+            window.location.href = `detail.html?date=${item.Fechas}-${year}`;
         };
 
         calendario.appendChild(div);
