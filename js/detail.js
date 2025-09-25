@@ -50,7 +50,7 @@ fetch("./data/donnees.json")
     };
   });
 
-function afficherJour(index, cibleID) {
+function afficherJour(index, annee, cibleID) {
   let item = jsonData[index];
   if (!item) return;
 
@@ -58,14 +58,19 @@ function afficherJour(index, cibleID) {
 
 
   if (cibleID === "contenu-current") {
-    const dateObj = new Date(Date.UTC(year, mois - 1, jour));
-    const nomJour = joursSemaine[dateObj.getUTCDay()];
+    const dateObj = new Date(annee, mois - 1, jour);
+    const nomJour = joursSemaine[dateObj.getDay()];
     const nomMois = moisNoms[mois - 1];
     document.getElementById("dateLongue").textContent = `${nomJour} ${jour} de ${nomMois}`;
+    history.replaceState(null, "", `?date=${String(mois).padStart(2, "0")}-${String(jour).padStart(2, "0")}-${year}`);
+    document.getElementById("back").onclick = () => {
+      window.location.href = `index.html?mois=${mois}-${year}`;
+    };
+
   }
 
-  // PÂQUES
-  const fetesMobiles = getFetesMobiles(year);
+  // Fêtes mobiles
+  const fetesMobiles = getFetesMobiles(annee);
   const feteDuJour = fetesMobiles.find(fete =>
     mois === fete.date.month && jour === fete.date.day
   );
@@ -73,9 +78,21 @@ function afficherJour(index, cibleID) {
   if (feteDuJour) {
     item = jsonData.find(obj => obj.Fechas === `${feteDuJour.nom}`);
   }
+  // Temps liturgique
+  let temps = getTempsLiturgique(annee, mois, jour);
 
-  const contenuHtml = `
+  if (!item) {
+    const contenuHtml = `
   <div class="detail-container">
+    <div class="detail-title">${feteDuJour.nom}</div>`;
+    document.getElementById(cibleID).innerHTML = contenuHtml;
+  }
+  else {
+    const contenuHtml = `
+  <div class="detail-container">
+    <div class="detail-title">Tiempo Liturgico</div>
+    <div class="detail-box">${temps.numero}${temps.nom}</div>
+
     ${item["Misericordia chile"] ? `
       <div class="detail-title">Santo del día</div>
       <div class="detail-box">${item["Misericordia chile"]}</div>
@@ -100,10 +117,11 @@ function afficherJour(index, cibleID) {
       <div class="detail-title">Color</div>
       <div class="detail-box">${item["Couleur / Color"]}</div>
     ` : ''}
-  </div>
-`;
+  </div>`;
+    document.getElementById(cibleID).innerHTML = contenuHtml;
+  }
 
-  document.getElementById(cibleID).innerHTML = contenuHtml;
+
 
   // Affiche/cacher le bouton "Hoy"
   const todayBtn = document.getElementById("today");
@@ -115,9 +133,20 @@ function afficherJour(index, cibleID) {
 }
 
 function afficherTousLesJours(index) {
-  afficherJour(index, "contenu-current");
-  afficherJour(index - 1, "contenu-prev");
-  afficherJour(index + 1, "contenu-next");
+  afficherJour(index, year, "contenu-current");
+
+  if (index === 0) {
+    afficherJour(365, year - 1, "contenu-prev");
+  }
+  else {
+    afficherJour(index - 1, year, "contenu-prev");
+  }
+  if (index === 365) {
+    afficherJour(0, year + 1, "contenu-next");
+  }
+  else {
+    afficherJour(index + 1, year, "contenu-next");
+  }
 }
 
 document.getElementById('contenu-slider').style.transform = 'translateX(-100vw)';
@@ -242,4 +271,135 @@ function getFetesMobiles(year) {
     }
     // Ajoute d'autres fêtes si besoin
   ];
+}
+
+function getTempsLiturgique(year, mois, jour) {
+  const paques = datePaques(year);
+
+  // Mercredi des Cendres = 46 jours avant Pâques
+  const caremeDebut = addDaysToDate(paques.month, paques.day, year, -46);
+  const dCaremeDebut = new Date(year, caremeDebut.month - 1, caremeDebut.day);
+
+  // Premier dimanche de Carême
+  let premierDimancheCareme = new Date(dCaremeDebut);
+  premierDimancheCareme.setDate(dCaremeDebut.getDate() + ((7 - dCaremeDebut.getDay()) % 7));
+
+  // Semaine Sainte = du dimanche avant Pâques à Pâques
+  const semaineSainteDebut = addDaysToDate(paques.month, paques.day, year, -7);
+  const dSemaineSainteDebut = new Date(year, semaineSainteDebut.month - 1, semaineSainteDebut.day);
+
+  // Temps Pascal = de Pâques à Pentecôte (49 jours)
+  const pentecote = addDaysToDate(paques.month, paques.day, year, 49);
+  const dPaques = new Date(year, paques.month - 1, paques.day);
+  const dPentecote = new Date(year, pentecote.month - 1, pentecote.day);
+
+  // Noël : du 25 décembre au Baptême du Seigneur (dimanche après le 6 janvier)
+  const dNoel = new Date(year, 11, 25);
+  let dBapteme = new Date(year, 0, 6); // 6 janvier
+  dBapteme.setDate(dBapteme.getDate() + ((7 - dBapteme.getDay()) % 7)); // dimanche après 6 janvier
+
+  // Avent : commence 4 dimanches avant Noël
+  let premierDimancheAvent = new Date(dNoel);
+  premierDimancheAvent.setDate(dNoel.getDate() - ((dNoel.getDay() === 0 ? 0 : dNoel.getDay()) + 21));
+
+  // Temps ordinaire 1 : du lundi après Baptême du Seigneur au mardi avant Carême
+  let ordinaire1Debut = new Date(dBapteme);
+  ordinaire1Debut.setDate(dBapteme.getDate() + 1); // lundi après Baptême
+  let ordinaire1Fin = new Date(dCaremeDebut);
+  ordinaire1Fin.setDate(dCaremeDebut.getDate() - 1);
+
+  // Temps ordinaire 2 : du lundi après Pentecôte à l'Avent
+  let ordinaire2Debut = new Date(dPentecote);
+  ordinaire2Debut.setDate(dPentecote.getDate() + 1);
+  let ordinaire2Fin = new Date(premierDimancheAvent);
+
+  // Date du jour
+  const d = new Date(year, mois - 1, jour);
+
+  // Avent
+  if (d >= premierDimancheAvent && d < dNoel) {
+    const diffDays = Math.floor((d - premierDimancheAvent) / (1000 * 60 * 60 * 24));
+    const semaineAvent = Math.floor(diffDays / 7) + 1;
+    return { nom: "° semana del Adviento", numero: Math.max(1, semaineAvent) };
+  }
+  // Noël (du 25 décembre au Baptême du Seigneur inclus)
+  if (d >= dNoel || d <= dBapteme) {
+    return { nom: "Navidad", numero: "" };
+  }
+  // Temps ordinaire 1
+  if (d >= ordinaire1Debut && d <= ordinaire1Fin) {
+    // Premier dimanche du Temps Ordinaire 1
+    let premierDimancheOrdinaire = new Date(ordinaire1Debut);
+    premierDimancheOrdinaire.setDate(ordinaire1Debut.getDate() + (7 - ordinaire1Debut.getDay()) % 7);
+
+    if (d < premierDimancheOrdinaire) {
+      // Avant le premier dimanche : semaine 1 (lundi-samedi)
+      return { nom: "° semana del Tiempo Ordinario", numero: 1 };
+    } else {
+      // À partir du premier dimanche, semaine = 2 + nombre de semaines écoulées depuis ce dimanche
+      const diffDays = Math.floor((d - premierDimancheOrdinaire) / (1000 * 60 * 60 * 24));
+      const semaine = Math.floor(diffDays / 7) + 2;
+      return { nom: "° semana del Tiempo Ordinario", numero: semaine };
+    }
+  }
+  // Jours de Cendres
+  if (d >= dCaremeDebut && d < premierDimancheCareme) {
+    const jourCendres = d.getDay();
+    return { nom: " de Cenizas", numero: joursSemaine[jourCendres] };
+  }
+  // Carême (semaines commençant le dimanche)
+  if (d >= premierDimancheCareme && d < dSemaineSainteDebut) {
+    const diffDays = Math.floor((d - premierDimancheCareme) / (1000 * 60 * 60 * 24));
+    const semaineCareme = Math.floor(diffDays / 7) + 1;
+    return { nom: "° semana de Cuaresma", numero: Math.max(1, semaineCareme) };
+  }
+  // Semaine Sainte
+  if (d >= dSemaineSainteDebut && d < dPaques) {
+    const jourSemaineSainte = d.getDay();
+    return { nom: " Santo", numero: joursSemaine[jourSemaineSainte] };
+  }
+  // Pâques
+  if (d.getTime() === dPaques.getTime()) {
+    return { nom: "Pascua", numero: "" };
+  }
+  // Temps Pascal
+  if (d > dPaques && d <= dPentecote) {
+    const diffDays = Math.floor((d - dPaques) / (1000 * 60 * 60 * 24));
+    const semainePascal = Math.floor(diffDays / 7) + 1;
+    return { nom: "° semana del Tiempo Pascual", numero: Math.max(1, semainePascal) };
+  }
+  // Temps ordinaire 2
+  if (d >= ordinaire2Debut && d < ordinaire2Fin) {
+    // Premier dimanche du Temps Ordinaire 1
+    let premierDimancheOrd1 = new Date(ordinaire1Debut);
+    premierDimancheOrd1.setDate(ordinaire1Debut.getDate() + ((7 - ordinaire1Debut.getDay()) % 7 || 7));
+    // Dernier dimanche du Temps Ordinaire 1 (avant Carême)
+    let dernierDimancheOrd1 = new Date(ordinaire1Fin);
+    dernierDimancheOrd1.setDate(ordinaire1Fin.getDate() - ordinaire1Fin.getDay());
+
+    // Nombre de semaines du Temps Ordinaire 1
+    const semainesOrd1 = ((dernierDimancheOrd1 - premierDimancheOrd1) / (1000 * 60 * 60 * 24 * 7)) + 2;
+
+    // Premier dimanche du Temps Ordinaire 2
+    let premierDimancheOrd2 = new Date(ordinaire2Debut);
+    premierDimancheOrd2.setDate(ordinaire2Debut.getDate() + 6);
+
+    if (d < premierDimancheOrd2) {
+      // Avant le premier dimanche : semaine suivante du temps ordinaire 1 (lundi-samedi)
+      return { nom: "° semana del Tiempo Ordinario", numero: semainesOrd1 + 2 };
+    } else {
+      // À partir du premier dimanche, semaine = suite de la numérotation
+      const d0 = toMinuit(d);
+      const d1 = toMinuit(premierDimancheOrd2);
+      const diffDays = Math.round((d0 - d1) / (1000 * 60 * 60 * 24));
+      const semaine = Math.floor(diffDays / 7) + semainesOrd1 + 3;
+      return { nom: "° semana del Tiempo Ordinario", numero: semaine };
+    }
+  }
+  // Sinon, temps ordinaire (par défaut)
+  return { nom: "Error al calcular el tiempo liturgico", numero: "" };
+}
+
+function toMinuit(date) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 }

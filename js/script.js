@@ -3,10 +3,11 @@ const moisNoms = [
     "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
 ];
 
+const params = new URLSearchParams(window.location.search);
+const dateParam = params.get("mois"); // format "MM-YYYY"
 const today = new Date();
-let currentMonth = today.getMonth() + 1; // 1-12
-let currentYear = today.getFullYear();
 
+let currentMonth, currentYear;
 let jsonData = [];
 
 // Charger le JSON une seule fois
@@ -14,6 +15,14 @@ fetch("./data/donnees.json")
     .then(response => response.json())
     .then(data => {
         jsonData = data;
+
+        if (dateParam !== null) {
+            [currentMonth, currentYear] = dateParam.split("-").map(x => parseInt(x, 10));
+        } else {
+            // Valeurs par défaut si pas de paramètre
+            currentMonth = today.getMonth() + 1; // mois 1–12
+            currentYear = today.getFullYear();
+        }
         afficherTousLesCalendriers(currentMonth, currentYear);
     })
     .catch(err => console.error("Error al cargar JSON:", err));
@@ -25,6 +34,8 @@ function afficherCalendrier(month, year, cibleId) {
     if (cibleId === "calendario-current") {
         const moisTitre = document.getElementById("mois");
         moisTitre.textContent = `${moisNoms[month - 1]} ${year}`;
+        const moisStr = String(currentMonth).padStart(2, "0");
+        history.replaceState(null, "", `?mois=${moisStr}-${currentYear}`);
     }
 
 
