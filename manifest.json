@@ -1,0 +1,15 @@
+{
+    "name": "Santoral Misericordia International",
+    "short_name": "Santoral",
+    "start_url": "/index.html",
+    "display": "standalone",
+    "background_color": "#ffd100",
+    "theme_color": "#007bff",
+    "icons": [
+        {
+            "src": "/media/icone.png",
+            "sizes": "225x225",
+            "type": "image/png"
+        }
+    ]
+}

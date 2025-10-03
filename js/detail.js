@@ -90,7 +90,6 @@ function afficherJour(index, annee, cibleID) {
   else {
     const contenuHtml = `
   <div class="detail-container">
-    <div class="detail-title">Tiempo Liturgico</div>
     <div class="detail-box">${temps.numero}${temps.nom}</div>
 
     ${item["Misericordia chile"] ? `
@@ -250,28 +249,112 @@ function addDaysToDate(month, day, year, offset) {
 
 function getFetesMobiles(year) {
   const paques = datePaques(year);
+  /*
+  | Fête                                      | Date par rapport à Pâques                                                         |
+| ----------------------------------------- | --------------------------------------------------------------------------------- |
+| **Mercredi des Cendres**                  | 46 jours avant Pâques                                                             |
+| **Dimanche des Rameaux et de la Passion** | 1 semaine avant Pâques                                                            |
+| **Jeudi Saint (Cène du Seigneur)**        | 3 jours avant Pâques                                                              |
+| **Vendredi Saint**                        | 2 jours avant Pâques                                                              |
+| **Samedi Saint (Veillée pascale)**        | 1 jour avant Pâques                                                               |
+| **Dimanche de Pâques (Résurrection)**     | date centrale, variable                                                           |
+| **Lundi de Pâques**                       | lendemain de Pâques                                                               |
+| **Ascension**                             | 40 jours après Pâques (souvent transférée au dimanche suivant dans certains pays) |
+| **Pentecôte**                             | 50 jours après Pâques                                                             |
+| **Lundi de Pentecôte**                    | lendemain de Pentecôte                                                            |
+| **Fête de la Sainte Trinité**             | dimanche après Pentecôte                                                          |
+| **Fête du Saint-Sacrement (Fête-Dieu)**   | jeudi après la Trinité (souvent transférée au dimanche suivant)                   |
+| **Fête du Sacré-Cœur**                    | vendredi après la Fête-Dieu                                                       |
+| **Immaculé Cœur de Marie**                | samedi après le Sacré-Cœur                                                        |
+| **Christ Roi de l’Univers**               | dimanche précédant le 1er dimanche de l’Avent                                     |
+*/
+
 
   // Calcul des fêtes mobiles
   return [
     {
-      nom: "Pascua",
-      date: paques
+      nom: "Miércoles de Ceniza",
+      date: addDaysToDate(paques.month, paques.day, year, -46) // 46 días antes de Pascua
+    },
+    {
+      nom: "Domingo de Ramos y de la Pasión",
+      date: addDaysToDate(paques.month, paques.day, year, -7) // 1 semana antes de Pascua
+    },
+    {
+      nom: "Jueves Santo",
+      date: addDaysToDate(paques.month, paques.day, year, -3) // 3 días antes de Pascua
+    },
+    {
+      nom: "Viernes Santo",
+      date: addDaysToDate(paques.month, paques.day, year, -2) // 2 días antes de Pascua
+    },
+    {
+      nom: "Sábado Santo",
+      date: addDaysToDate(paques.month, paques.day, year, -1) // 1 día antes de Pascua
+    },
+    {
+      nom: "Domingo de Pascua",
+      date: addDaysToDate(paques.month, paques.day, year, 0) // Pascua
+    },
+    {
+      nom: "Lunes de Pascua",
+      date: addDaysToDate(paques.month, paques.day, year, 1) // día después de Pascua
     },
     {
       nom: "Ascensión",
-      date: addDaysToDate(paques.month, paques.day, year, 39) // 39 jours après Pâques
+      date: addDaysToDate(paques.month, paques.day, year, 39) // 40 días después de Pascua
     },
     {
       nom: "Pentecostés",
-      date: addDaysToDate(paques.month, paques.day, year, 49) // 49 jours après Pâques
+      date: addDaysToDate(paques.month, paques.day, year, 49) // 50 días después de Pascua
+    },
+    {
+      nom: "Lunes de Pentecostés",
+      date: addDaysToDate(paques.month, paques.day, year, 50) // día después de Pentecostés
+    },
+    {
+      nom: "Fiesta de la Santísima Trinidad",
+      date: addDaysToDate(paques.month, paques.day, year, 56) // domingo después de Pentecostés
     },
     {
       nom: "Corpus Christi",
-      date: addDaysToDate(paques.month, paques.day, year, 60) // 60 jours après Pâques
+      date: addDaysToDate(paques.month, paques.day, year, 60) // jueves después de la Trinidad
+    },
+    {
+      nom: "Sagrado Corazón de Jesús",
+      date: addDaysToDate(paques.month, paques.day, year, 61) // viernes después del Corpus Christi
+    },
+    {
+      nom: "Inmaculado Corazón de María",
+      date: addDaysToDate(paques.month, paques.day, year, 62) // sábado después del Sagrado Corazón
+    },
+    {
+      nom: "Cristo Rey del Universo",
+      date: calculateCristoRey(year) // función especial para calcular el domingo antes del Adviento
     }
-    // Ajoute d'autres fêtes si besoin
   ];
 }
+
+function calculateCristoRey(year) {
+  // Date de Noël
+  const christmas = new Date(year, 11, 25); // 25 décembre
+
+  // Trouver le 1er dimanche de l’Avent (4e dimanche avant Noël)
+  let adventSunday = new Date(christmas);
+  // reculer de 28 jours (4 semaines)
+  adventSunday.setDate(christmas.getDate() - 28);
+  // ajuster pour tomber sur un dimanche
+  const dayOfWeek = adventSunday.getDay(); // 0 = dimanche
+  adventSunday.setDate(adventSunday.getDate() + (0 - dayOfWeek + 7) % 7);
+
+  // Cristo Rey = dimanche précédent
+  const cristoRey = new Date(adventSunday);
+  cristoRey.setDate(adventSunday.getDate() - 7);
+
+  return { month: cristoRey.getMonth() + 1, day: cristoRey.getDate() };
+}
+
+
 
 function getTempsLiturgique(year, mois, jour) {
   const paques = datePaques(year);

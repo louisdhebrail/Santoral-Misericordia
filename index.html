@@ -5,9 +5,24 @@
     <meta charset="UTF-8">
     <title>Santoral Misericordia</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#007bff">
     <link href="https://fonts.googleapis.com/css2?family=Lekton&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
 </head>
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/js/sw.js')
+                .then(() => {
+                    console.log('Service Worker enregistré avec succès');
+                })
+                .catch((error) => {
+                    console.log('Échec de l\'enregistrement du Service Worker :', error);
+                });
+        });
+    }
+</script>
 
 <body>
     <header>
