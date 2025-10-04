@@ -2,18 +2,26 @@
 
 const CACHE_NAME = 'pwa-cache-v1';
 const urlsToCache = [
-    './',
-    './index.html',
-    './detail.html',
-    './manifest.json',
-    './data/donnees.json',
-    './fonts/nc-extrabold.woff2',
-    './fonts/nc-medium.woff2',
-    './css/style.css',
-    './js/script.js',
-    './js/detail.js',
-    './media/screenshot-narrow.png',
-    './media/screenshot-wide.png'
+    "/Santoral-Misericordia/",
+    "/Santoral-Misericordia/index.html",
+    "/Santoral-Misericordia/detail.html",
+    "/Santoral-Misericordia/manifest.json",
+    "/Santoral-Misericordia/data/donnees.json",
+    "/Santoral-Misericordia/fonts/nc-extrabold.woff2",
+    "/Santoral-Misericordia/fonts/nc-medium.woff2",
+    "/Santoral-Misericordia/css/style.css",
+    "/Santoral-Misericordia/js/script.js",
+    "/Santoral-Misericordia/js/detail.js",
+    "/Santoral-Misericordia/media/screenshot-narrow.png",
+    "/Santoral-Misericordia/media/screenshot-wide.png",
+    "/Santoral-Misericordia/media/web-app-manifest-192x192.png",
+    "/Santoral-Misericordia/media/web-app-manifest-512x512.png",
+    "/Santoral-Misericordia/media/logomisericordia.png",
+    "/Santoral-Misericordia/favicon.ico",
+    "https://fonts.googleapis.com/css2?family=Lekton&display=swap"
+
+
+
 
 ];
 
