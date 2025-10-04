@@ -1,6 +1,6 @@
 // sw.js
 
-const CACHE_NAME = 'pwa-cache-v1';
+const CACHE_NAME = 'pwa-cache-v2';
 const urlsToCache = [
     "/Santoral-Misericordia/",
     "/Santoral-Misericordia/index.html",
@@ -33,6 +33,10 @@ self.addEventListener('install', (event) => {
                 return cache.addAll(urlsToCache);
             })
     );
+});
+
+self.addEventListener('activate', (event) => {
+    event.waitUntil(clients.claim());
 });
 
 self.addEventListener('fetch', (event) => {
