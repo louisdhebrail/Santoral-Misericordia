@@ -12,7 +12,8 @@ const urlsToCache = [
     '/css/style.css',
     '/js/script.js',
     '/js/detail.js',
-    '/media/icone.png',
+    '/media/screenshot-narrow.png',
+    '/media/screenshot-wide.png'
 
 ];
 
