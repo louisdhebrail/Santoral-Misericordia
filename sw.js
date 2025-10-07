@@ -40,10 +40,28 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+    const url = new URL(event.request.url);
+
+    // Si c'est detail.html, on ignore la query string et on sert la version cache
+    if (url.pathname.endsWith('/detail.html')) {
+        event.respondWith(
+            caches.match('/Santoral-Misericordia/detail.html')
+        );
+        return;
+    }
+
+    if (url.pathname.endsWith('/index.html')) {
+        event.respondWith(
+            caches.match('/Santoral-Misericordia/index.html')
+        );
+        return;
+    }
+
+    // Pour tout le reste, cache-first classique
     event.respondWith(
-        caches.match(event.request)
-            .then((response) => {
-                return response || fetch(event.request);
-            })
+        caches.match(event.request).then((response) => {
+            return response || fetch(event.request);
+        })
     );
 });
+
