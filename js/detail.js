@@ -430,28 +430,29 @@ function getTempsLiturgique(year, mois, jour) {
   // Jours de Cendres
   if (d >= dCaremeDebut && d < premierDimancheCareme) {
     const jourCendres = d.getDay();
-    return { nom: " de Cenizas", numero: joursSemaine[jourCendres] };
+    return { nom: " de Cenizas", numero: joursSemaine[jourCendres], psalterio: romanWeek[3] };
   }
   // Carême (semaines commençant le dimanche)
   if (d >= premierDimancheCareme && d < dSemaineSainteDebut) {
     const diffDays = Math.floor((d - premierDimancheCareme) / (1000 * 60 * 60 * 24));
     const semaineCareme = Math.floor(diffDays / 7) + 1;
-    return { nom: "° semana de Cuaresma", numero: Math.max(1, semaineCareme) };
+    return { nom: "° semana de Cuaresma", numero: Math.max(1, semaineCareme), psalterio: romanWeek[(semaineCareme - 1) % 4] };
   }
   // Semaine Sainte
   if (d >= dSemaineSainteDebut && d < dPaques) {
     const jourSemaineSainte = d.getDay();
-    return { nom: " Santo", numero: joursSemaine[jourSemaineSainte] };
+    const semaineCareme = Math.floor(diffDays / 7) + 1;
+    return { nom: " Santo", numero: joursSemaine[jourSemaineSainte], psalterio: romanWeek[(semaineCareme - 1) % 4] };
   }
   // Pâques
   if (d.getTime() === dPaques.getTime()) {
-    return { nom: "Pascua", numero: "" };
+    return { nom: "Pascua", numero: "", psalterio: romanWeek[0] };
   }
   // Temps Pascal
   if (d > dPaques && d <= dPentecote) {
     const diffDays = Math.floor((d - dPaques) / (1000 * 60 * 60 * 24));
     const semainePascal = Math.floor(diffDays / 7) + 1;
-    return { nom: "° semana del Tiempo Pascual", numero: Math.max(1, semainePascal) };
+    return { nom: "° semana del Tiempo Pascual", numero: Math.max(1, semainePascal), psalterio: romanWeek[(semainePascal - 1) % 4] };
   }
   // Temps ordinaire 2
   if (d >= ordinaire2Debut && d < ordinaire2Fin) {
@@ -471,14 +472,14 @@ function getTempsLiturgique(year, mois, jour) {
 
     if (d < premierDimancheOrd2) {
       // Avant le premier dimanche : semaine suivante du temps ordinaire 1 (lundi-samedi)
-      return { nom: "° semana del Tiempo Ordinario", numero: semainesOrd1 + 2 };
+      return { nom: "° semana del Tiempo Ordinario", numero: semainesOrd1 + 2, psalterio: romanWeek[(semainesOrd1 + 1) % 4] };
     } else {
       // À partir du premier dimanche, semaine = suite de la numérotation
       const d0 = toMinuit(d);
       const d1 = toMinuit(premierDimancheOrd2);
       const diffDays = Math.round((d0 - d1) / (1000 * 60 * 60 * 24));
       const semaine = Math.floor(diffDays / 7) + semainesOrd1 + 3;
-      return { nom: "° semana del Tiempo Ordinario", numero: semaine };
+      return { nom: "° semana del Tiempo Ordinario", numero: semaine, psalterio: romanWeek[(semaine - 1) % 4] };
     }
   }
   // Sinon, temps ordinaire (par défaut)
