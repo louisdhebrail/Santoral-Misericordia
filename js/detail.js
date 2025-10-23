@@ -3,6 +3,8 @@ const dateParam = params.get("date"); // format "MM-DD-YYYY"
 let [, , year] = dateParam.split("-").map(x => parseInt(x, 10));
 const paques = datePaques(year);
 const today = new Date();
+const romanWeek = ["I", "II", "III", "IV"];
+
 
 const joursSemaine = [
   "Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"
@@ -90,7 +92,7 @@ function afficherJour(index, annee, cibleID) {
   else {
     const contenuHtml = `
   <div class="detail-container">
-    <div class="detail-box">${temps.numero}${temps.nom}</div>
+    <div class="detail-box">${temps.numero}${temps.nom} <br> Semana ${temps.psalterio} del psalterio</div>
 
     ${item["Misericordia chile"] ? `
       <div class="detail-title">Santo del día</div>
@@ -354,8 +356,6 @@ function calculateCristoRey(year) {
   return { month: cristoRey.getMonth() + 1, day: cristoRey.getDate() };
 }
 
-
-
 function getTempsLiturgique(year, mois, jour) {
   const paques = datePaques(year);
 
@@ -403,11 +403,13 @@ function getTempsLiturgique(year, mois, jour) {
   if (d >= premierDimancheAvent && d < dNoel) {
     const diffDays = Math.floor((d - premierDimancheAvent) / (1000 * 60 * 60 * 24));
     const semaineAvent = Math.floor(diffDays / 7) + 1;
-    return { nom: "° semana del Adviento", numero: Math.max(1, semaineAvent) };
+    return { nom: "° semana del Adviento", numero: Math.max(1, semaineAvent), psalterio: romanWeek[semaineAvent - 1] };
   }
   // Noël (du 25 décembre au Baptême du Seigneur inclus)
   if (d >= dNoel || d <= dBapteme) {
-    return { nom: "Navidad", numero: "" };
+    const diffDays = Math.floor((d - premierDimancheAvent) / (1000 * 60 * 60 * 24));
+    const week = Math.floor(diffDays / 7) % 4; // psautier 0-3
+    return { nom: "Navidad", numero: "", psalterio: romanWeek[week] };
   }
   // Temps ordinaire 1
   if (d >= ordinaire1Debut && d <= ordinaire1Fin) {
@@ -417,12 +419,12 @@ function getTempsLiturgique(year, mois, jour) {
 
     if (d < premierDimancheOrdinaire) {
       // Avant le premier dimanche : semaine 1 (lundi-samedi)
-      return { nom: "° semana del Tiempo Ordinario", numero: 1 };
+      return { nom: "° semana del Tiempo Ordinario", numero: 1, psalterio: "I" };
     } else {
       // À partir du premier dimanche, semaine = 2 + nombre de semaines écoulées depuis ce dimanche
       const diffDays = Math.floor((d - premierDimancheOrdinaire) / (1000 * 60 * 60 * 24));
       const semaine = Math.floor(diffDays / 7) + 2;
-      return { nom: "° semana del Tiempo Ordinario", numero: semaine };
+      return { nom: "° semana del Tiempo Ordinario", numero: semaine, psalterio: romanWeek[(semaine - 1) % 4] };
     }
   }
   // Jours de Cendres
