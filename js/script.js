@@ -74,6 +74,13 @@ function afficherCalendrier(month, year, cibleId) {
         ) {
             div.classList.add("today");
         }
+        if (
+            month === 0o2 && jour === 29 &&
+            !((year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0))
+        ) {
+            div.style.display = "none";
+        }
+
 
         // Clic = aller à la page détail
         div.onclick = () => {
