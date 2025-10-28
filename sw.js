@@ -1,6 +1,6 @@
 // sw.js
 
-const CACHE_NAME = 'pwa-cache-v2';
+const CACHE_NAME = 'pwa-cache-v3';
 const urlsToCache = [
     "./index.html",
     "./detail.html",
