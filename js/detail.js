@@ -14,17 +14,20 @@ const moisNoms = [
   "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
 ];
 
-let jsonData = [];
+let jsonData = {};
+let tableau = []; // le tableau des jours
 let indexCourant = -1;
 
 // Charger les données
-fetch("./data/donnees.json")
+fetch("./data/donnees.json?v=${Date.now()}")
   .then(res => res.json())
   .then(data => {
     jsonData = data;
+    tableau = jsonData.data; // le tableau réel
+
 
     // Trouver l'index du jour courant
-    indexCourant = data.findIndex(item => item.Fechas === dateParam.slice(0, 5));
+    indexCourant = tableau.findIndex(item => item.Fechas === dateParam.slice(0, 5));
     afficherTousLesJours(indexCourant);
 
     // Navigation
@@ -53,7 +56,7 @@ fetch("./data/donnees.json")
   });
 
 function afficherJour(index, annee, cibleID) {
-  let item = jsonData[index];
+  let item = tableau[index];
   if (!item) return;
 
   const [mois, jour] = item.Fechas.split("-").map(x => parseInt(x, 10));
@@ -78,7 +81,7 @@ function afficherJour(index, annee, cibleID) {
   );
 
   if (feteDuJour) {
-    item = jsonData.find(obj => obj.Fechas === `${feteDuJour.nom}`);
+    item = tableau.find(obj => obj.Fechas === `${feteDuJour.nom}`);
   }
   // Temps liturgique
   let temps = getTempsLiturgique(annee, mois, jour);
@@ -156,7 +159,7 @@ document.getElementById('contenu-slider').style.transform = 'translateX(-100vw)'
 document.getElementById("today").onclick = () => {
   currentMonth = today.getMonth() + 1;
   currentDay = today.getDate();
-  indexCourant = jsonData.findIndex(item => item.Fechas === currentMonth.toString().padStart(2, '0') + '-' + currentDay.toString().padStart(2, '0'));
+  indexCourant = tableau.findIndex(item => item.Fechas === currentMonth.toString().padStart(2, '0') + '-' + currentDay.toString().padStart(2, '0'));
   afficherTousLesJours(indexCourant);
 };
 
@@ -499,7 +502,7 @@ const jsonInput = document.getElementById('jsonInput');
 // Quand on clique sur “Modifier”
 editBtn.addEventListener('click', () => {
   // Remplir le textarea avec les données du jour uniquement
-  jsonInput.value = JSON.stringify(jsonData[indexCourant], null, 2);
+  jsonInput.value = JSON.stringify(tableau[indexCourant], null, 2);
   editFormContainer.style.display = 'block';
 });
 
@@ -514,8 +517,9 @@ editForm.addEventListener('submit', async (e) => {
   const newDayData = JSON.parse(jsonInput.value);
 
   // Mettre à jour le JSON global localement
-  jsonData[indexCourant] = newDayData;
-
+  tableau[indexCourant] = newDayData;
+  jsonData.data = tableau; // mettre à jour l’objet global
+  jsonData.version = new Date().toISOString(); // mettre à jour la version
   // Envoyer à la Netlify Function
   const response = await fetch('/.netlify/functions/update-json', {
     method: 'POST',
