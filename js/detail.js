@@ -489,3 +489,46 @@ function getTempsLiturgique(year, mois, jour) {
 function toMinuit(date) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 }
+
+const editBtn = document.getElementById('editBtn');
+const editFormContainer = document.getElementById('editFormContainer');
+const cancelBtn = document.getElementById('cancelBtn');
+const jsonInput = document.getElementById('jsonInput');
+
+
+// Quand on clique sur “Modifier”
+editBtn.addEventListener('click', () => {
+  // Remplir le textarea avec les données du jour uniquement
+  jsonInput.value = JSON.stringify(jsonData[indexCourant], null, 2);
+  editFormContainer.style.display = 'block';
+});
+
+// Annuler
+cancelBtn.addEventListener('click', () => {
+  editFormContainer.style.display = 'none';
+});
+
+const editForm = document.getElementById('editForm');
+editForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const newDayData = JSON.parse(jsonInput.value);
+
+  // Mettre à jour le JSON global localement
+  jsonData[indexCourant] = newDayData;
+
+  // Envoyer à la Netlify Function
+  const response = await fetch('./netlify/function/update-json.js', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ jsonData })
+  });
+
+  const result = await response.json();
+  if (result.success) {
+    alert('JSON mis à jour !');
+    editFormContainer.style.display = 'none';
+    // Optionnel : mettre à jour la page avec les nouvelles données
+  } else {
+    alert('Erreur : ' + result.error);
+  }
+});
