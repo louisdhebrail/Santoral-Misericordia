@@ -185,7 +185,7 @@ calendar.addEventListener("touchend", () => {
   isSwiping = false;
 
   // swipe validé si > 50px
-  if (Math.abs(deltaX) > 50) {
+  if (Math.abs(deltaX) > 70) {
     if (deltaX < 0) {
       // gauche → mois suivant
       calendar.style.transition = "transform 0.3s ease";
@@ -500,11 +500,28 @@ const jsonInput = document.getElementById('jsonInput');
 
 
 // Quand on clique sur “Modifier”
-editBtn.addEventListener('click', () => {
-  // Remplir le textarea avec les données du jour uniquement
-  jsonInput.value = JSON.stringify(tableau[indexCourant], null, 2);
-  editFormContainer.style.display = 'block';
-  editBtn.style.display = 'none';
+editBtn.addEventListener('click', async () => {
+  const password = prompt("🔒 Entrar clave para modificar datos :");
+  if (!password) return;
+
+  // On envoie le mot de passe à une Netlify Function pour vérification
+  const res = await fetch("/.netlify/functions/check-password", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ password })
+  });
+
+  const data = await res.json();
+
+  if (data.valid) {
+    alert("✅ Acceso autorizado");
+    // Remplir le textarea avec les données du jour uniquement
+    jsonInput.value = JSON.stringify(tableau[indexCourant], null, 2);
+    editFormContainer.style.display = 'block';
+    editBtn.style.display = 'none';
+  } else {
+    alert("❌ Clave incorrecta");
+  }
 });
 
 // Annuler
