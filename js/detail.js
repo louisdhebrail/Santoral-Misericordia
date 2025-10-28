@@ -185,7 +185,7 @@ calendar.addEventListener("touchend", () => {
   isSwiping = false;
 
   // swipe validé si > 50px
-  if (Math.abs(deltaX) > 10) {
+  if (Math.abs(deltaX) > 50) {
     if (deltaX < 0) {
       // gauche → mois suivant
       calendar.style.transition = "transform 0.3s ease";
