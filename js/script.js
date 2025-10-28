@@ -8,13 +8,15 @@ const dateParam = params.get("mois"); // format "MM-YYYY"
 const today = new Date();
 
 let currentMonth, currentYear;
-let jsonData = [];
+let jsonData = {};
+let tableau = []; // le tableau des jours
 
 // Charger le JSON une seule fois
-fetch("./data/donnees.json")
+fetch("./data/donnees.json?v=${Date.now()}")
     .then(response => response.json())
     .then(data => {
         jsonData = data;
+        tableau = jsonData.data; // le tableau réel
 
         if (dateParam !== null) {
             [currentMonth, currentYear] = dateParam.split("-").map(x => parseInt(x, 10));
@@ -40,7 +42,7 @@ function afficherCalendrier(month, year, cibleId) {
 
 
     // Filtrer les jours du mois demandé
-    const joursDuMois = jsonData.filter(item => {
+    const joursDuMois = tableau.filter(item => {
         const mois = parseInt(item.Fechas.slice(0, 2)); // MM-DD
         return mois === month;
     });
