@@ -517,7 +517,7 @@ editForm.addEventListener('submit', async (e) => {
   jsonData[indexCourant] = newDayData;
 
   // Envoyer à la Netlify Function
-  const response = await fetch('./netlify/function/update-json.js', {
+  const response = await fetch('/.netlify/functions/update-json', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ jsonData })
