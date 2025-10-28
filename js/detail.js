@@ -504,6 +504,7 @@ editBtn.addEventListener('click', () => {
   // Remplir le textarea avec les données du jour uniquement
   jsonInput.value = JSON.stringify(tableau[indexCourant], null, 2);
   editFormContainer.style.display = 'block';
+  editBtn.style.display = 'none';
 });
 
 // Annuler
@@ -529,10 +530,9 @@ editForm.addEventListener('submit', async (e) => {
 
   const result = await response.json();
   if (result.success) {
-    alert('JSON mis à jour !');
+    alert('Actualización exitosa !');
     editFormContainer.style.display = 'none';
-    // Optionnel : mettre à jour la page avec les nouvelles données
   } else {
-    alert('Erreur : ' + result.error);
+    alert('Error : ' + result.error);
   }
 });

@@ -288,3 +288,14 @@ header {
     cursor: pointer;
     transition: background-color 0.3s;
 }
+
+#editBtn {
+    position: fixed;
+    justify-items: center;
+    bottom: 15px;
+    width: clamp(35px, 7vw, 45px);
+    background-color: rgba(128, 128, 128, 0.4);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}

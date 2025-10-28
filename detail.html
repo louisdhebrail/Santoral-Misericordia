@@ -28,21 +28,24 @@
             <div id="contenu-current"></div>
             <div id="contenu-next"></div>
         </div>
-        <button id="editBtn">Modifier</button>
     </div>
 
     <div id="editFormContainer" style="display:none;">
         <form id="editForm">
             <textarea id="jsonInput" rows="10" cols="50"></textarea>
-            <button type="submit">Sauvegarder</button>
-            <button type="button" id="cancelBtn">Annuler</button>
+            <button type="submit">Guardar</button>
+            <button type="button" id="cancelBtn">Cancelar</button>
         </form>
     </div>
 
-    <div><img src="https://images.icon-icons.com/1673/PNG/512/arrowbackoutline_110825.png" alt="Back" id="back"
-            class="back-arrow"></div>
-    <div class="today-btn" id="today">Hoy</div>
-    <script src="js/detail.js"></script>
+    <div style="display: flex ; justify-content: space-around; bottom : 0px"><img
+            src="https://images.icon-icons.com/1673/PNG/512/arrowbackoutline_110825.png" alt="Back" id="back"
+            class="back-arrow">
+        <img src="./media/edit.png" id="editBtn">
+        <div class="today-btn" id="today">Hoy</div>
+    </div>
+</body>
+<script src="js/detail.js"></script>
 </body>
 
 
