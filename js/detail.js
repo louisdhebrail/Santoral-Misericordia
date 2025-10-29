@@ -519,6 +519,22 @@ editBtn.addEventListener('click', async () => {
     jsonInput.value = JSON.stringify(tableau[indexCourant], null, 2);
     editFormContainer.style.display = 'block';
     editBtn.style.display = 'none';
+    const form = document.getElementById('editForm');
+
+    // Génération dynamique
+    for (const [key, value] of Object.entries(tableau[indexCourant])) {
+      const label = document.createElement('label');
+      label.textContent = key + " : ";
+
+      const input = document.createElement('input');
+      input.name = key;
+      input.value = value;
+
+      label.appendChild(input);
+      form.appendChild(label);
+      form.appendChild(document.createElement('br'));
+    }
+
   } else {
     alert("❌ Clave incorrecta");
   }
