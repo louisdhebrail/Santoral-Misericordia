@@ -537,7 +537,7 @@ editBtn.addEventListener('click', async () => {
 
       if (key === "Fechas") {
         input.readOnly = true;
-        input.style.backgroundColor = "#f0f0f0";
+        input.style.backgroundColor = "#c1c1c1";
       }
       label.appendChild(document.createElement('br'));
       label.appendChild(input);
@@ -552,6 +552,7 @@ editBtn.addEventListener('click', async () => {
 
 // Annuler
 cancelBtn.addEventListener('click', () => {
+  form.innerHTML = ''; // supprime tout le contenu du formulaire
   editFormContainer.style.display = 'none';
   editBtn.style.display = 'block';
   infos.style.display = 'block';
@@ -560,7 +561,7 @@ cancelBtn.addEventListener('click', () => {
 const editForm = document.getElementById('editForm');
 editForm.addEventListener('submit', async (e) => {
   e.preventDefault();
-  const formData = new FormData(form);
+  const formData = new FormData(editForm);
   const newDayData = Object.fromEntries(formData.entries());
 
   // Mettre à jour le JSON global localement
