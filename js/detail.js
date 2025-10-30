@@ -510,6 +510,8 @@ function showToast(msg, { duration = 3000, background = "green", gravity = "bott
     style: { background, borderRadius, padding }
   }).showToast();
 };
+showToast("Succès !");                // vert par défaut
+showToast("Erreur !", { background: "red" });  // rouge
 
 // Quand on clique sur “Modifier”
 editBtn.addEventListener('click', async () => {
