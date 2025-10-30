@@ -563,7 +563,7 @@ editForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   const formData = new FormData(editForm);
   const newDayData = Object.fromEntries(formData.entries());
-
+  console.log(newDayData);
   // Mettre à jour le JSON global localement
   tableau[indexCourant] = newDayData;
   jsonData.data = tableau; // mettre à jour l’objet global
