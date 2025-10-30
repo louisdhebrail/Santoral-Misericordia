@@ -1,6 +1,6 @@
 // sw.js
 
-const CACHE_NAME = 'pwa-cache-v4'; // ← Change la version à chaque update du SW
+const CACHE_NAME = 'pwa-cache-v5'; // ← Change la version à chaque update du SW
 const urlsToCache = [
     "./index.html",
     "./detail.html",
@@ -16,11 +16,15 @@ const urlsToCache = [
     "./media/web-app-manifest-192x192.png",
     "./media/web-app-manifest-512x512.png",
     "./media/logomisericordia.png",
+    "./media/edit.png",
     "./favicon.ico",
+    "netlify/functions/update-json.js",
+    "netlify/functions/check-password.js",
     "https://fonts.googleapis.com/css2?family=Lekton&display=swap"
 ];
 
 self.addEventListener('install', (event) => {
+    self.skipWaiting();
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then((cache) => {

@@ -578,8 +578,12 @@ editForm.addEventListener('submit', async (e) => {
   const result = await response.json();
   if (result.success) {
     alert('Actualización exitosa !');
-    editFormContainer.style.display = 'none';
+
   } else {
     alert('Error : ' + result.error);
   }
+  editFormContainer.style.display = 'none';
+  editBtn.style.display = 'block';
+  infos.style.display = 'block';
+  form.innerHTML = '';
 });
