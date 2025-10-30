@@ -1,5 +1,5 @@
 {
-  "version": "2025-10-28T16:25:01.514Z",
+  "version": "2025-10-30T05:44:01.576Z",
   "data": [
     {
       "Fechas": "01-01",
@@ -3336,13 +3336,13 @@
     },
     {
       "Fechas": "10-30",
-      "Misericordia chile": "San Alonso Rodrígez",
-      "Santoral Argentino": null,
+      "Misericordia chile": "San Alonso Rodrígez test",
+      "Santoral Argentino": "",
       "Misericordia France": "Sainte HÉLÈNE d’ANJOU",
       "Ayuno": "Si",
       "En el Breviario Castellano": "del ordinario",
-      "Celebracion Celebration": null,
-      "Dans le breviere Francais": null,
+      "Celebracion Celebration": "",
+      "Dans le breviere Francais": "",
       "Couleur / Color": "du temps/ del tiempo"
     },
     {
