@@ -501,6 +501,18 @@ const form = document.getElementById('inputsContainer');
 
 // const jsonInput = document.getElementById('jsonInput');
 
+function showToast(msg, options = {}) {
+  Toastify({
+    text: msg,
+    duration: options.duration || 3000,
+    gravity: options.gravity || "bottom",
+    position: options.position || "center",
+    backgroundColor: options.backgroundColor || "green"
+  }).showToast();
+}
+
+showToast("Mise à jour effectuée !");
+showToast("Erreur !", { backgroundColor: "red" });
 
 // Quand on clique sur “Modifier”
 editBtn.addEventListener('click', async () => {
@@ -517,7 +529,7 @@ editBtn.addEventListener('click', async () => {
   const data = await res.json();
 
   if (data.valid) {
-    alert("✅ Acceso autorizado");
+    showToast("✅ Acceso autorizado");
     // Remplir le textarea avec les données du jour uniquement
     // jsonInput.value = JSON.stringify(tableau[indexCourant], null, 2);
     editFormContainer.style.display = 'block';
@@ -546,7 +558,7 @@ editBtn.addEventListener('click', async () => {
     }
 
   } else {
-    alert("❌ Clave incorrecta");
+    showToast("❌ Clave incorrecta", { backgroundColor: "red" });
   }
 });
 
@@ -565,7 +577,6 @@ editForm.addEventListener('submit', async (e) => {
   const newDayData = Object.fromEntries(formData.entries());
   // Mettre à jour le JSON global localement
   tableau[indexCourant] = newDayData;
-  console.log(tableau);
   jsonData.data = tableau; // mettre à jour l’objet global
   jsonData.version = new Date().toISOString(); // mettre à jour la version
   // Envoyer à la Netlify Function
@@ -577,10 +588,10 @@ editForm.addEventListener('submit', async (e) => {
 
   const result = await response.json();
   if (result.success) {
-    alert('Actualización exitosa !');
+    showToast('Actualización exitosa !');
 
   } else {
-    alert('Error : ' + result.error);
+    show('Error : ' + result.error, { backgroundColor: 'red' });
   }
   editFormContainer.style.display = 'none';
   editBtn.style.display = 'block';
