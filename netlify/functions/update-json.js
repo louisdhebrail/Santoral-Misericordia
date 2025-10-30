@@ -5,7 +5,6 @@ exports.handler = async function (event, context) {
 
     const body = JSON.parse(event.body);
     const newData = body.jsonData; // JSON envoyé depuis le frontend
-    console.log("Mise à jour du JSON reçue :", newData);
     const githubToken = process.env.GITHUB_TOKEN; // À définir dans Netlify
     const owner = 'louisdhebrail';
     const repo = 'Santoral-Misericordia';

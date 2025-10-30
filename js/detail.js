@@ -563,9 +563,9 @@ editForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   const formData = new FormData(editForm);
   const newDayData = Object.fromEntries(formData.entries());
-  console.log(newDayData);
   // Mettre à jour le JSON global localement
   tableau[indexCourant] = newDayData;
+  console.log(tableau);
   jsonData.data = tableau; // mettre à jour l’objet global
   jsonData.version = new Date().toISOString(); // mettre à jour la version
   // Envoyer à la Netlify Function
