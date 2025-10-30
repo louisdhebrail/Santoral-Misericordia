@@ -501,18 +501,15 @@ const form = document.getElementById('inputsContainer');
 
 // const jsonInput = document.getElementById('jsonInput');
 
-function showToast(msg, options = {}) {
+function showToast(msg, { duration = 3000, background = "green", gravity = "bottom", borderRadius = "50%", position = "center", padding = "10px 20px" } = {}) {
   Toastify({
     text: msg,
-    duration: options.duration || 3000,
-    gravity: options.gravity || "bottom",
-    position: options.position || "center",
-    backgroundColor: options.backgroundColor || "green"
+    duration: duration,
+    gravity: gravity,
+    position: position,
+    style: { background, borderRadius, padding }
   }).showToast();
-}
-
-showToast("Mise à jour effectuée !");
-showToast("Erreur !", { backgroundColor: "red" });
+};
 
 // Quand on clique sur “Modifier”
 editBtn.addEventListener('click', async () => {
