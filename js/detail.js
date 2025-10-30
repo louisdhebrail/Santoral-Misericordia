@@ -496,7 +496,7 @@ function toMinuit(date) {
 const editBtn = document.getElementById('editBtn');
 const editFormContainer = document.getElementById('editFormContainer');
 const cancelBtn = document.getElementById('cancelBtn');
-const jsonInput = document.getElementById('jsonInput');
+// const jsonInput = document.getElementById('jsonInput');
 
 
 // Quand on clique sur “Modifier”
@@ -516,15 +516,16 @@ editBtn.addEventListener('click', async () => {
   if (data.valid) {
     alert("✅ Acceso autorizado");
     // Remplir le textarea avec les données du jour uniquement
-    jsonInput.value = JSON.stringify(tableau[indexCourant], null, 2);
+    // jsonInput.value = JSON.stringify(tableau[indexCourant], null, 2);
     editFormContainer.style.display = 'block';
     editBtn.style.display = 'none';
-    const form = document.getElementById('editForm');
+    const form = document.getElementById('inputsContainer');
 
     // Génération dynamique
     for (const [key, value] of Object.entries(tableau[indexCourant])) {
       const label = document.createElement('label');
       label.textContent = key + " : ";
+      label.className = 'detail-title'
 
       const input = document.createElement('input');
       input.name = key;
@@ -543,12 +544,14 @@ editBtn.addEventListener('click', async () => {
 // Annuler
 cancelBtn.addEventListener('click', () => {
   editFormContainer.style.display = 'none';
+  editBtn.style.display = 'block';
 });
 
 const editForm = document.getElementById('editForm');
 editForm.addEventListener('submit', async (e) => {
   e.preventDefault();
-  const newDayData = JSON.parse(jsonInput.value);
+  const formData = new FormData(form);
+  const newDayData = Object.fromEntries(formData.entries());
 
   // Mettre à jour le JSON global localement
   tableau[indexCourant] = newDayData;

@@ -9,9 +9,10 @@ exports.handler = async function (event, context) {
     const owner = 'louisdhebrail';
     const repo = 'Santoral-Misericordia';
     const path = 'data/donnees.json';
+    const branch = process.env.BRANCH;
 
     try {    // Récupérer le SHA du fichier existant
-        const getResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
+        const getResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${branch}`, {
             headers: { Authorization: `token ${githubToken}` }
         });
         const getData = await getResponse.json();
@@ -24,6 +25,7 @@ exports.handler = async function (event, context) {
             body: JSON.stringify({
                 message: 'Mise à jour via Netlify Function',
                 content: Buffer.from(JSON.stringify(newData, null, 2)).toString('base64'),
+                branch,
                 sha
             })
         });
