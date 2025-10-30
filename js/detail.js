@@ -496,6 +496,9 @@ function toMinuit(date) {
 const editBtn = document.getElementById('editBtn');
 const editFormContainer = document.getElementById('editFormContainer');
 const cancelBtn = document.getElementById('cancelBtn');
+const infos = document.getElementById('contenu-container')
+const form = document.getElementById('inputsContainer');
+
 // const jsonInput = document.getElementById('jsonInput');
 
 
@@ -519,18 +522,24 @@ editBtn.addEventListener('click', async () => {
     // jsonInput.value = JSON.stringify(tableau[indexCourant], null, 2);
     editFormContainer.style.display = 'block';
     editBtn.style.display = 'none';
-    const form = document.getElementById('inputsContainer');
+    infos.style.display = 'none';
 
     // Génération dynamique
     for (const [key, value] of Object.entries(tableau[indexCourant])) {
       const label = document.createElement('label');
-      label.textContent = key + " : ";
+      label.textContent = key;
       label.className = 'detail-title'
 
       const input = document.createElement('input');
       input.name = key;
       input.value = value;
+      input.className = 'detail-box';
 
+      if (key === "Fechas") {
+        input.readOnly = true;
+        input.style.backgroundColor = "#f0f0f0";
+      }
+      label.appendChild(document.createElement('br'));
       label.appendChild(input);
       form.appendChild(label);
       form.appendChild(document.createElement('br'));
@@ -545,6 +554,7 @@ editBtn.addEventListener('click', async () => {
 cancelBtn.addEventListener('click', () => {
   editFormContainer.style.display = 'none';
   editBtn.style.display = 'block';
+  infos.style.display = 'block';
 });
 
 const editForm = document.getElementById('editForm');
