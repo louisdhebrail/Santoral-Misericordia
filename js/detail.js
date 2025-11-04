@@ -560,7 +560,7 @@ editBtn.addEventListener('click', async () => {
 
 
   } else {
-    showToast("❌ Clave incorrecta", { backgroundColor: "red" });
+    showToast("❌ Clave incorrecta", { background: "red" });
   }
 });
 
