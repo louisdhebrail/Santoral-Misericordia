@@ -4028,7 +4028,7 @@
       "Couleur / Color": "du temps/ del tiempo"
     },
     {
-      "Fechas": "Pascua",
+      "Fechas": "Domingo de Pascua",
       "Misericordia chile": "Pascua",
       "Santoral Argentino": "Pascua",
       "Misericordia France": "Pascua",
@@ -4040,7 +4040,14 @@
     },
     {
       "Fechas": "Ascensión",
-      "Misericordia chile": "Ascensión"
+      "Misericordia chile": "Ascensión",
+      "Santoral Argentino": "Ascensión",
+      "Misericordia France": "Ascension",
+      "Ayuno": "No",
+      "En el Breviario Castellano": null,
+      "Celebracion Celebration": null,
+      "Dans le breviere Francais": null,
+      "Couleur / Color": null
     }
   ]
 }

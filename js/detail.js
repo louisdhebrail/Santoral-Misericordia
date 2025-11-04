@@ -83,7 +83,7 @@ function afficherJour(index, annee, cibleID) {
       window.location.href = `index.html?mois=${mois}-${year}`;
     };
     itemAff = item;
-    indexAff = tableau.findIndex(item => item === itemAff);
+    indexAff = tableau.findIndex(i => i === itemAff);
   }
 
   // Temps liturgique
