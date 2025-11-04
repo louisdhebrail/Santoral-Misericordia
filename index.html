@@ -12,13 +12,25 @@
 </head>
 <script>
     if ("serviceWorker" in navigator) {
+        // ✅ 1. Enregistrement du service worker
+        window.addEventListener("load", () => {
+            navigator.serviceWorker
+                .register("./sw.js")
+                .then(() => console.log("✅ Service Worker enregistré avec succès"))
+                .catch((error) =>
+                    console.log("❌ Échec de l'enregistrement du Service Worker :", error)
+                );
+        });
+
+        // ✅ 2. Écoute des messages envoyés par le SW
         navigator.serviceWorker.addEventListener("message", (event) => {
             if (event.data && event.data.type === "UPDATE_AVAILABLE") {
                 console.log("🔁 Nouvelle version détectée — rechargement...");
-                window.location.reload(); // recharge la page automatiquement
+                window.location.reload();
             }
         });
     }
+
 </script>
 
 <body>
