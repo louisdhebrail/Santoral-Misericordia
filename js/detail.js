@@ -17,6 +17,8 @@ const moisNoms = [
 let jsonData = {};
 let tableau = []; // le tableau des jours
 let indexCourant = -1;
+let indexAff = null;
+let itemAff = null;
 
 // Charger les données
 fetch("./data/donnees.json?v=${Date.now()}")
@@ -61,6 +63,15 @@ function afficherJour(index, annee, cibleID) {
 
   const [mois, jour] = item.Fechas.split("-").map(x => parseInt(x, 10));
 
+  // Fêtes mobiles
+  const fetesMobiles = getFetesMobiles(annee);
+  const feteDuJour = fetesMobiles.find(fete =>
+    mois === fete.date.month && jour === fete.date.day
+  );
+
+  if (feteDuJour) {
+    item = tableau.find(obj => obj.Fechas === `${feteDuJour.nom}`);
+  }
 
   if (cibleID === "contenu-current") {
     const dateObj = new Date(annee, mois - 1, jour);
@@ -71,18 +82,10 @@ function afficherJour(index, annee, cibleID) {
     document.getElementById("back").onclick = () => {
       window.location.href = `index.html?mois=${mois}-${year}`;
     };
-
+    itemAff = item;
+    indexAff = tableau.findIndex(item => item === itemAff);
   }
 
-  // Fêtes mobiles
-  const fetesMobiles = getFetesMobiles(annee);
-  const feteDuJour = fetesMobiles.find(fete =>
-    mois === fete.date.month && jour === fete.date.day
-  );
-
-  if (feteDuJour) {
-    item = tableau.find(obj => obj.Fechas === `${feteDuJour.nom}`);
-  }
   // Temps liturgique
   let temps = getTempsLiturgique(annee, mois, jour);
 
@@ -444,6 +447,7 @@ function getTempsLiturgique(year, mois, jour) {
   // Semaine Sainte
   if (d >= dSemaineSainteDebut && d < dPaques) {
     const jourSemaineSainte = d.getDay();
+    const diffDays = Math.floor((d - premierDimancheCareme) / (1000 * 60 * 60 * 24));
     const semaineCareme = Math.floor(diffDays / 7) + 1;
     return { nom: " Santo", numero: joursSemaine[jourSemaineSainte], psalterio: romanWeek[(semaineCareme - 1) % 4] };
   }
@@ -507,7 +511,7 @@ function showToast(msg, { duration = 3000, background = "green", gravity = "bott
     duration: duration,
     gravity: gravity,
     position: position,
-    style: { background, borderRadius, padding, maxWidth: "80vw" }
+    style: { background, borderRadius, padding }
   }).showToast();
 };
 
@@ -534,7 +538,7 @@ editBtn.addEventListener('click', async () => {
     infos.style.display = 'none';
 
     // Génération dynamique
-    for (const [key, value] of Object.entries(tableau[indexCourant])) {
+    for (const [key, value] of Object.entries(itemAff)) {
       const label = document.createElement('label');
       label.textContent = key;
       label.className = 'detail-title'
@@ -574,7 +578,7 @@ editForm.addEventListener('submit', async (e) => {
   const formData = new FormData(editForm);
   const newDayData = Object.fromEntries(formData.entries());
   // Mettre à jour le JSON global localement
-  tableau[indexCourant] = newDayData;
+  tableau[indexAff] = newDayData;
   jsonData.data = tableau; // mettre à jour l’objet global
   jsonData.version = new Date().toISOString(); // mettre à jour la version
   // Envoyer à la Netlify Function
