@@ -501,17 +501,15 @@ const form = document.getElementById('inputsContainer');
 
 // const jsonInput = document.getElementById('jsonInput');
 
-function showToast(msg, { duration = 3000, background = "green", gravity = "bottom", borderRadius = "50%", position = "center", padding = "10px 20px" } = {}) {
+function showToast(msg, { duration = 3000, background = "green", gravity = "bottom", borderRadius = "70px", position = "center", padding = "10px 50px" } = {}) {
   Toastify({
     text: msg,
     duration: duration,
     gravity: gravity,
     position: position,
-    style: { background, borderRadius, padding }
+    style: { background, borderRadius, padding, maxWidth: "80vw" }
   }).showToast();
 };
-showToast("Succès !");                // vert par défaut
-showToast("Erreur !", { background: "red" });  // rouge
 
 // Quand on clique sur “Modifier”
 editBtn.addEventListener('click', async () => {
