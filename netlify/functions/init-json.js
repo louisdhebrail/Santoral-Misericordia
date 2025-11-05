@@ -1,23 +1,28 @@
-import { promises as fs } from 'fs';
-import { blobs } from '@netlify/blobs';
+import { getStore } from '@netlify/blobs';
+import fs from 'fs';
+import path from 'path';
 
 export async function handler() {
     try {
-        const store = blobs();
+        // Ouvre ton fichier JSON local
+        const filePath = path.resolve('data/donnees.json');
+        const rawData = fs.readFileSync(filePath, 'utf8');
+        const jsonData = JSON.parse(rawData);
 
-        // Lire ton fichier local data/donnees.json
-        const raw = await fs.readFile('./data/donnees.json', 'utf-8');
-        const jsonData = JSON.parse(raw);
+        // Initialise le “store” de données Netlify Blobs
+        const store = getStore('donnees');
 
-        // Enregistrer le contenu dans les blobs
-        await store.setJSON('donnees', jsonData);
+        // Enregistre ton fichier JSON dans le store
+        await store.setJSON('donnees.json', jsonData);
 
         return {
             statusCode: 200,
-            body: '✅ Données importées depuis data/donnees.json vers Netlify Blobs !'
+            body: JSON.stringify({ success: true, message: 'Données importées dans Netlify Blobs !' })
         };
-    } catch (error) {
-        console.error(error);
-        return { statusCode: 500, body: 'Erreur : ' + error.message };
+    } catch (err) {
+        return {
+            statusCode: 500,
+            body: JSON.stringify({ success: false, error: err.message })
+        };
     }
 }
