@@ -526,7 +526,6 @@ editBtn.addEventListener('click', async () => {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ password })
   });
-
   const data = await res.json();
 
   if (data.valid) {
