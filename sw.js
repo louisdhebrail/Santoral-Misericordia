@@ -1,5 +1,5 @@
 // ✅ Service Worker — version pour Netlify Blobs
-const CACHE_NAME = "pwa-cache-v11"; // incrémente à chaque nouvelle version
+const CACHE_NAME = "pwa-cache-v12"; // incrémente à chaque nouvelle version
 const DATA_CACHE = "data-cache-v2";
 
 // 🔗 URL de ton blob JSON (ton endpoint de lecture Netlify)
@@ -23,8 +23,7 @@ const urlsToCache = [
     "./favicon.ico",
     "https://fonts.googleapis.com/css2?family=Lekton&display=swap"
 ];
-// Service Worker minimal et sûr : cache-first pour tout, cache-first simple pour get-json.
-// Ne pas interférer avec les ressources cross-origin ni le manifest ni autres functions.
+
 
 function cleanRequest(request) {
     try {
@@ -38,9 +37,7 @@ function cleanRequest(request) {
 
 self.addEventListener("install", (e) => {
     self.skipWaiting();
-    e.waitUntil(
-        caches.open(CACHE_NAME).then((cache) => cache.addAll(urlsToCache))
-    );
+    e.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache)));
 });
 
 self.addEventListener("activate", (e) => {
@@ -64,54 +61,66 @@ self.addEventListener("fetch", (event) => {
         return;
     }
 
-    // get-json : cache-first mais vérifie en arrière-plan si la version a changé
-    if (url.pathname.endsWith(DATA_URL)) {
+    // get-json : cache-first + vérification en arrière-plan de la "version" JSON
+    if (url.pathname.endsWith("/.netlify/functions/get-json")) {
         event.respondWith((async () => {
             const cache = await caches.open(DATA_CACHE);
             const cached = await cache.match(DATA_URL);
 
             if (cached) {
-                // Vérification réseau en arrière-plan : compare ETag / version / texte
+                // vérification réseau en arrière-plan : mise à jour du cache seulement si version différente
                 const checkAndUpdate = (async () => {
                     try {
                         const netResp = await fetch(event.request, { cache: "no-store" });
                         if (!netResp || !netResp.ok) return;
 
-                        // Comparaison via champ "version" dans le JSON
-                        let needUpdate = true;
+                        // lire la version côté réseau (si présente)
+                        let netVersion;
                         try {
-                            const [netJson, cachedJson] = await Promise.all([netResp.clone().json(), cached.clone().json()]);
-                            if (netJson && cachedJson && netJson.version && cachedJson.version && netJson.version === cachedJson.version) {
-                                needUpdate = false;
-                            }
+                            const netJson = await netResp.clone().json();
+                            if (netJson && typeof netJson.version !== "undefined") netVersion = netJson.version;
                         } catch (err) {
-                            // Fallback : comparaison texte brute
-                            try {
-                                const [netText, cachedText] = await Promise.all([netResp.clone().text(), cached.clone().text()]);
-                                if (netText === cachedText) needUpdate = false;
-                            } catch (err2) {
-                                // si tout échoue, on considère qu'il y a eu un changement
-                            }
+                            netVersion = undefined;
                         }
 
-                        if (needUpdate) {
+                        if (typeof netVersion !== "undefined") {
+                            // lire la version côté cache (si possible)
+                            let cachedVersion;
+                            try {
+                                const cachedJson = await cached.clone().json();
+                                if (cachedJson && typeof cachedJson.version !== "undefined") cachedVersion = cachedJson.version;
+                            } catch (err) {
+                                cachedVersion = undefined;
+                            }
+
+                            // si versions différentes -> mettre à jour le cache
+                            if (cachedVersion !== netVersion) {
+                                await cache.put(DATA_URL, netResp.clone());
+                            }
+                            return;
+                        }
+
+                        // fallback : si pas de champ "version", comparer ETag si disponible
+                        const netEtag = netResp.headers.get("ETag") || netResp.headers.get("etag");
+                        const cachedEtag = cached.headers.get("ETag") || cached.headers.get("etag");
+                        if (netEtag && cachedEtag && netEtag !== cachedEtag) {
                             await cache.put(DATA_URL, netResp.clone());
                         }
+                        // sinon : ne rien faire (évite opérations coûteuses)
                     } catch (err) {
-                        // fail silently, on garde le cache existant
-                        console.warn("SW: background check failed", err);
+                        console.warn("SW: background version check failed", err);
                     }
                 })();
 
-                // garder le SW vivant pendant la vérif
                 event.waitUntil(checkAndUpdate());
                 return cached;
             }
 
-            // pas de cache : tenter le réseau et mettre en cache si ok
+            // Pas de cache : récupérer réseau et mettre en cache si OK
             try {
                 const resp = await fetch(event.request);
                 if (resp && resp.ok) {
+                    const cache = await caches.open(DATA_CACHE);
                     await cache.put(DATA_URL, resp.clone());
                     return resp;
                 }
@@ -123,12 +132,11 @@ self.addEventListener("fetch", (event) => {
         return;
     }
 
-    // Fichiers statiques : cache-first (stable et simple)
+    // Fichiers statiques : cache-first simple
     event.respondWith(
-        caches.match(cleanRequest(event.request)).then((resp) => {
+        caches.match(cleanRequest(event.request)).then(resp => {
             if (resp) return resp;
-            return fetch(event.request).then((networkResp) => {
-                // mettre en cache les réponses navigables/html/js/css/images pour offline
+            return fetch(event.request).then(networkResp => {
                 if (networkResp && networkResp.ok) {
                     caches.open(CACHE_NAME).then(cache => cache.put(cleanRequest(event.request), networkResp.clone()));
                 }
