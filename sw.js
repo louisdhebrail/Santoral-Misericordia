@@ -71,8 +71,12 @@ self.addEventListener("fetch", (event) => {
             const cached = await cache.match(DATA_URL);
 
             if (cached) {
-                // vérification en arrière-plan
-                async function checkAndUpdate() {
+                // CLONES : une pour le client, une pour les vérifications
+                const responseForClient = cached.clone();
+                const responseForCheck = cached.clone();
+
+                // vérification en arrière-plan (utilise responseForCheck)
+                async function checkAndUpdate(cachedResp) {
                     try {
                         const netResp = await fetch(event.request, { cache: "no-store" });
                         if (!netResp || !netResp.ok) return;
@@ -87,10 +91,10 @@ self.addEventListener("fetch", (event) => {
                         }
 
                         if (typeof netVersion !== "undefined") {
-                            // lire la version côté cache
+                            // lire la version côté cache à partir du clone fourni
                             let cachedVersion;
                             try {
-                                const cachedJson = await cached.clone().json();
+                                const cachedJson = await cachedResp.json();
                                 if (cachedJson && typeof cachedJson.version !== "undefined") cachedVersion = cachedJson.version;
                             } catch (err) {
                                 cachedVersion = undefined;
@@ -104,25 +108,27 @@ self.addEventListener("fetch", (event) => {
 
                         // fallback léger : comparer ETag si présent
                         const netEtag = netResp.headers.get("ETag") || netResp.headers.get("etag");
-                        const cachedEtag = cached.headers.get("ETag") || cached.headers.get("etag");
+                        const cachedEtag = cachedResp.headers.get("ETag") || cachedResp.headers.get("etag");
                         if (netEtag && cachedEtag && netEtag !== cachedEtag) {
                             await cache.put(DATA_URL, netResp.clone());
                         }
-                        // sinon : on ne met pas à jour automatiquement (évite coût et erreurs)
+                        // sinon : on ne met pas à jour automatiquement
                     } catch (err) {
                         // silent fail - on garde le cache
                         console.warn("SW: background version check failed", err);
                     }
                 }
 
-                event.waitUntil(checkAndUpdate());
-                return cached;
+                // keep SW alive while check runs
+                event.waitUntil(checkAndUpdate(responseForCheck));
+                return responseForClient;
             }
 
             // Pas de cache : essayer réseau, mettre en cache si OK
             try {
                 const resp = await fetch(event.request);
                 if (resp && resp.ok) {
+                    const cache = await caches.open(DATA_CACHE);
                     await cache.put(DATA_URL, resp.clone());
                     return resp;
                 }
