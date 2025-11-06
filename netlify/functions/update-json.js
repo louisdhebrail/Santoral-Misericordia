@@ -9,7 +9,12 @@ export async function handler(event) {
         const body = JSON.parse(event.body);
         const newData = body.jsonData;
 
-        const store = getStore('donnees');
+
+        const store = getStore({
+            name: 'donnees',
+            siteID: process.env.NETLIFY_SITE_ID,
+            token: process.env.NETLIFY_API_TOKEN
+        });
         await store.setJSON('donnees.json', newData);
 
         return {
