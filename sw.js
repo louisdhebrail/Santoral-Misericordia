@@ -1,5 +1,5 @@
 // ✅ Service Worker — version pour Netlify Blobs
-const CACHE_NAME = "pwa-cache-v10"; // incrémente à chaque nouvelle version
+const CACHE_NAME = "pwa-cache-v11"; // incrémente à chaque nouvelle version
 const DATA_CACHE = "data-cache-v2";
 
 // 🔗 URL de ton blob JSON (ton endpoint de lecture Netlify)
@@ -64,12 +64,51 @@ self.addEventListener("fetch", (event) => {
         return;
     }
 
-    // get-json : cache-first simple (retourne le cache si présent, sinon réseau et mise en cache)
+    // get-json : cache-first mais vérifie en arrière-plan si la version a changé
     if (url.pathname.endsWith(DATA_URL)) {
         event.respondWith((async () => {
             const cache = await caches.open(DATA_CACHE);
             const cached = await cache.match(DATA_URL);
-            if (cached) return cached;
+
+            if (cached) {
+                // Vérification réseau en arrière-plan : compare ETag / version / texte
+                const checkAndUpdate = (async () => {
+                    try {
+                        const netResp = await fetch(event.request, { cache: "no-store" });
+                        if (!netResp || !netResp.ok) return;
+
+                        // Comparaison via champ "version" dans le JSON
+                        let needUpdate = true;
+                        try {
+                            const [netJson, cachedJson] = await Promise.all([netResp.clone().json(), cached.clone().json()]);
+                            if (netJson && cachedJson && netJson.version && cachedJson.version && netJson.version === cachedJson.version) {
+                                needUpdate = false;
+                            }
+                        } catch (err) {
+                            // Fallback : comparaison texte brute
+                            try {
+                                const [netText, cachedText] = await Promise.all([netResp.clone().text(), cached.clone().text()]);
+                                if (netText === cachedText) needUpdate = false;
+                            } catch (err2) {
+                                // si tout échoue, on considère qu'il y a eu un changement
+                            }
+                        }
+
+                        if (needUpdate) {
+                            await cache.put(DATA_URL, netResp.clone());
+                        }
+                    } catch (err) {
+                        // fail silently, on garde le cache existant
+                        console.warn("SW: background check failed", err);
+                    }
+                })();
+
+                // garder le SW vivant pendant la vérif
+                event.waitUntil(checkAndUpdate());
+                return cached;
+            }
+
+            // pas de cache : tenter le réseau et mettre en cache si ok
             try {
                 const resp = await fetch(event.request);
                 if (resp && resp.ok) {
@@ -77,7 +116,7 @@ self.addEventListener("fetch", (event) => {
                     return resp;
                 }
             } catch (e) {
-                // offline or error -> fallthrough to cached (which is null here)
+                // offline ou erreur -> fallback
             }
             return cached || Response.error();
         })());
