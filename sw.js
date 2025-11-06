@@ -56,48 +56,57 @@ self.addEventListener("activate", (event) => {
 });
 
 // 📡 Gestion des requêtes
+// ...existing code...
 self.addEventListener("fetch", (event) => {
     const url = new URL(event.request.url);
 
-    // 🔹 Cas 1 : lecture du blob JSON (Netlify Function)
-    if (url.pathname.endsWith("/.netlify/functions/get-json")) {
-        event.respondWith(
-            (async () => {
-                const cache = await caches.open(DATA_CACHE);
-                const cachedResponse = await cache.match(DATA_URL);
+    // Ne pas interférer avec les ressources cross-origin, manifest ou icônes,
+    // ni avec les Netlify functions autres que get-json
+    if (
+        url.origin !== location.origin ||
+        url.pathname.endsWith("/manifest.json") ||
+        event.request.destination === "image" ||
+        (url.pathname.startsWith("/.netlify/functions/") && !url.pathname.endsWith("/get-json"))
+    ) {
+        return; // laisser le navigateur gérer la requête
+    }
 
+    // ----- STALE-WHILE-REVALIDATE pour la Netlify Function get-json -----
+    if (url.pathname.endsWith("/.netlify/functions/get-json")) {
+        event.respondWith((async () => {
+            const cache = await caches.open(DATA_CACHE);
+            const cachedResponse = await cache.match(DATA_URL);
+
+            // Lance le fetch réseau en arrière-plan (met à jour le cache si OK)
+            const networkFetch = (async () => {
                 try {
                     const networkResponse = await fetch(event.request);
-                    const freshData = await networkResponse.clone().json();
-
-                    if (cachedResponse) {
-                        const oldData = await cachedResponse.clone().json();
-                        if (oldData.version !== freshData.version) {
-                            console.log("🔄 Nouvelle version détectée :", freshData.version);
-                            await cache.put(DATA_URL, networkResponse.clone());
-                            const clientsList = await self.clients.matchAll({ includeUncontrolled: true });
-                            clientsList.forEach((client) =>
-                                client.postMessage({ type: "UPDATE_AVAILABLE" })
-                            );
-                        } else {
-                            console.log("✅ Version inchangée :", oldData.version);
-                        }
-                    } else {
-                        console.log("🆕 Première mise en cache des données");
+                    if (networkResponse && networkResponse.ok) {
                         await cache.put(DATA_URL, networkResponse.clone());
+                        // notifier les clients d'une mise à jour si nécessaire
+                        const clientsList = await self.clients.matchAll({ includeUncontrolled: true });
+                        clientsList.forEach(client => client.postMessage({ type: "UPDATE_AVAILABLE" }));
                     }
-
                     return networkResponse;
                 } catch (err) {
-                    console.warn("⚠️ Offline — données depuis le cache");
-                    return cachedResponse;
+                    return null;
                 }
-            })()
-        );
+            })();
+
+            if (cachedResponse) {
+                // renvoyer le cache immédiatement et mettre à jour en fond
+                event.waitUntil(networkFetch);
+                return cachedResponse;
+            }
+
+            // pas de cache : attendre le réseau ou fallback sur cache (rare)
+            const netResp = await networkFetch;
+            return netResp || cachedResponse;
+        })());
         return;
     }
 
-    // 🔹 Cas 2 : fichiers statiques (cache-first)
+    // ----- Cas 2 : fichiers statiques (cache-first) -----
     if (
         url.origin === location.origin &&
         (url.pathname.endsWith(".html") ||
@@ -110,13 +119,13 @@ self.addEventListener("fetch", (event) => {
     ) {
         const clean = cleanRequest(event.request);
         event.respondWith(
-            caches.match(clean).then((response) => response || fetch(event.request))
+            caches.match(clean).then(response => response || fetch(event.request))
         );
         return;
     }
 
-    // 🔹 Cas 3 : comportement par défaut
+    // ----- Cas 3 : comportement par défaut (cache fallback network) -----
     event.respondWith(
-        caches.match(event.request).then((response) => response || fetch(event.request))
+        caches.match(event.request).then(response => response || fetch(event.request))
     );
 });
