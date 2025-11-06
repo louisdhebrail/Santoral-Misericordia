@@ -4,7 +4,7 @@
 // - vérification en arrière-plan: compare uniquement le champ "version" du JSON (si présent)
 // - n'interfère pas avec les ressources cross-origin, le manifest, ni les autres Netlify functions
 
-const CACHE_NAME = "pwa-cache-v1";
+const CACHE_NAME = "pwa-cache-v2";
 const DATA_CACHE = "data-cache-v1";
 const DATA_URL = "/.netlify/functions/get-json";
 
@@ -71,56 +71,54 @@ self.addEventListener("fetch", (event) => {
             const cached = await cache.match(DATA_URL);
 
             if (cached) {
-                // CLONES : une pour le client, une pour les vérifications
+                // renvoyer la réponse cache au client (clone pour le client)
                 const responseForClient = cached.clone();
-                const responseForCheck = cached.clone();
 
-                // vérification en arrière-plan (utilise responseForCheck)
-                async function checkAndUpdate(cachedResp) {
+                // vérification en arrière-plan : relire le cache via cache.match() pour éviter d'utiliser un Response consommé
+                async function checkAndUpdate() {
                     try {
                         const netResp = await fetch(event.request, { cache: "no-store" });
                         if (!netResp || !netResp.ok) return;
 
-                        // Lire la version côté réseau (si présente)
+                        // préparer clones du réseau : un pour parsing, un pour la mise en cache
+                        const netForJson = netResp.clone();
+                        const netForCache = netResp.clone();
+
+                        // lire la version côté réseau (si présente)
                         let netVersion;
                         try {
-                            const netJson = await netResp.clone().json();
+                            const netJson = await netForJson.json();
                             if (netJson && typeof netJson.version !== "undefined") netVersion = netJson.version;
                         } catch (err) {
                             netVersion = undefined;
                         }
 
                         if (typeof netVersion !== "undefined") {
-                            // lire la version côté cache à partir du clone fourni
+                            // relire le cache pour obtenir une Response "fraîche" et lire sa version
+                            const cachedFresh = await cache.match(DATA_URL);
                             let cachedVersion;
-                            try {
-                                const cachedJson = await cachedResp.json();
-                                if (cachedJson && typeof cachedJson.version !== "undefined") cachedVersion = cachedJson.version;
-                            } catch (err) {
-                                cachedVersion = undefined;
+                            if (cachedFresh) {
+                                try {
+                                    const cachedJson = await cachedFresh.json();
+                                    if (cachedJson && typeof cachedJson.version !== "undefined") cachedVersion = cachedJson.version;
+                                } catch (err) {
+                                    cachedVersion = undefined;
+                                }
                             }
 
                             if (cachedVersion !== netVersion) {
-                                await cache.put(DATA_URL, netResp.clone());
+                                await cache.put(DATA_URL, netForCache);
                             }
                             return;
                         }
 
-                        // fallback léger : comparer ETag si présent
-                        const netEtag = netResp.headers.get("ETag") || netResp.headers.get("etag");
-                        const cachedEtag = cachedResp.headers.get("ETag") || cachedResp.headers.get("etag");
-                        if (netEtag && cachedEtag && netEtag !== cachedEtag) {
-                            await cache.put(DATA_URL, netResp.clone());
-                        }
-                        // sinon : on ne met pas à jour automatiquement
+
                     } catch (err) {
-                        // silent fail - on garde le cache
                         console.warn("SW: background version check failed", err);
                     }
                 }
 
-                // keep SW alive while check runs
-                event.waitUntil(checkAndUpdate(responseForCheck));
+                event.waitUntil(checkAndUpdate());
                 return responseForClient;
             }
 
