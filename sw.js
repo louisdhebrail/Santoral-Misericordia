@@ -1,7 +1,9 @@
-// ✅ Service Worker — version améliorée
-const CACHE_NAME = "pwa-cache-v6"; // incrémente cette version quand tu modifies ton site
-const DATA_CACHE = "data-cache-v1";
-const DATA_URL = "/data/donnees.json";
+// ✅ Service Worker — version pour Netlify Blobs
+const CACHE_NAME = "pwa-cache-v7"; // incrémente à chaque nouvelle version
+const DATA_CACHE = "data-cache-v2";
+
+// 🔗 URL de ton blob JSON (ton endpoint de lecture Netlify)
+const DATA_URL = "/.netlify/functions/get-json";
 
 const urlsToCache = [
     "./index.html",
@@ -22,14 +24,14 @@ const urlsToCache = [
     "https://fonts.googleapis.com/css2?family=Lekton&display=swap"
 ];
 
-// 🪄 Helper : supprimer les paramètres d’URL
+// 🪄 Helper : nettoyer les paramètres d’URL
 function cleanRequest(request) {
     const url = new URL(request.url);
-    url.search = ""; // enlève tout ce qui est après le "?"
+    url.search = "";
     return new Request(url.toString(), { method: request.method, headers: request.headers });
 }
 
-// 🏗️ Installation : précache de base
+// 🏗️ Installation
 self.addEventListener("install", (event) => {
     self.skipWaiting();
     event.waitUntil(
@@ -40,7 +42,7 @@ self.addEventListener("install", (event) => {
     );
 });
 
-// 🚀 Activation : nettoyage des anciens caches
+// 🚀 Activation
 self.addEventListener("activate", (event) => {
     event.waitUntil(
         caches.keys().then((keys) =>
@@ -57,8 +59,8 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
     const url = new URL(event.request.url);
 
-    // 🔹 Cas 1 : données dynamiques (donnees.json)
-    if (url.pathname.endsWith("/data/donnees.json")) {
+    // 🔹 Cas 1 : lecture du blob JSON (Netlify Function)
+    if (url.pathname.endsWith("/.netlify/functions/get-json")) {
         event.respondWith(
             (async () => {
                 const cache = await caches.open(DATA_CACHE);
@@ -70,16 +72,13 @@ self.addEventListener("fetch", (event) => {
 
                     if (cachedResponse) {
                         const oldData = await cachedResponse.clone().json();
-
                         if (oldData.version !== freshData.version) {
                             console.log("🔄 Nouvelle version détectée :", freshData.version);
                             await cache.put(DATA_URL, networkResponse.clone());
-
-                            // ✅ Notifie toutes les pages ouvertes
                             const clientsList = await self.clients.matchAll({ includeUncontrolled: true });
-                            clientsList.forEach((client) => {
-                                client.postMessage({ type: "UPDATE_AVAILABLE" });
-                            });
+                            clientsList.forEach((client) =>
+                                client.postMessage({ type: "UPDATE_AVAILABLE" })
+                            );
                         } else {
                             console.log("✅ Version inchangée :", oldData.version);
                         }
@@ -98,8 +97,7 @@ self.addEventListener("fetch", (event) => {
         return;
     }
 
-
-    // 🔹 Cas 2 : fichiers statiques (ignore les paramètres d’URL)
+    // 🔹 Cas 2 : fichiers statiques (cache-first)
     if (
         url.origin === location.origin &&
         (url.pathname.endsWith(".html") ||
