@@ -223,7 +223,7 @@ calendar.addEventListener("touchend", () => {
   } else {
     // retour au centre si swipe trop court
     calendar.style.transition = "transform 0.3s ease";
-    calendar.style.transform = "translateX(0)";
+    calendar.style.transform = "translateX(-100vw)";
   }
 
   deltaX = 0;
