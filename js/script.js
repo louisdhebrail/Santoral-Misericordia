@@ -12,7 +12,7 @@ let jsonData = {};
 let tableau = []; // le tableau des jours
 
 // Charger le JSON une seule fois
-fetch("./data/donnees.json?v=${Date.now()}")
+fetch("/.netlify/functions/get-json")
     .then(response => response.json())
     .then(data => {
         jsonData = data;

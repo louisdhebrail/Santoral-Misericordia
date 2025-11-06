@@ -21,7 +21,7 @@ let indexAff = null;
 let itemAff = null;
 
 // Charger les données
-fetch("./data/donnees.json?v=${Date.now()}")
+fetch("/.netlify/functions/get-json")
   .then(res => res.json())
   .then(data => {
     jsonData = data;
