@@ -2,11 +2,12 @@ import { getStore } from "@netlify/blobs";
 
 export async function handler() {
     try {
-        const data = await getJSON('donnees.json', {
+        const store = getStore({
             name: 'donnees',
             siteID: process.env.NETLIFY_SITE_ID,
             token: process.env.NETLIFY_API_TOKEN
         });
+        const data = await store.get("donnees.json", { type: "json" });
 
         if (!data) {
             return {
