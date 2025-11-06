@@ -1,5 +1,5 @@
 // ✅ Service Worker — version pour Netlify Blobs
-const CACHE_NAME = "pwa-cache-v8"; // incrémente à chaque nouvelle version
+const CACHE_NAME = "pwa-cache-v9"; // incrémente à chaque nouvelle version
 const DATA_CACHE = "data-cache-v2";
 
 // 🔗 URL de ton blob JSON (ton endpoint de lecture Netlify)
