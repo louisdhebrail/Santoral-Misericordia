@@ -12,7 +12,7 @@ let jsonData = {};
 let tableau = []; // le tableau des jours
 
 // Charger le JSON une seule fois
-fetch("./data/donnees.json?v=${Date.now()}")
+fetch("/.netlify/functions/get-json")
     .then(response => response.json())
     .then(data => {
         jsonData = data;
@@ -170,7 +170,7 @@ calendar.addEventListener("touchend", () => {
     isSwiping = false;
 
     // swipe validé si > 50px
-    if (Math.abs(deltaX) > 10) {
+    if (Math.abs(deltaX) > 70) {
         if (deltaX < 0) {
             // gauche → mois suivant
             calendar.style.transition = "transform 0.3s ease";

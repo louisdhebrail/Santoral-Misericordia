@@ -1,40 +1,30 @@
-exports.handler = async function (event, context) {
+import { getStore } from '@netlify/blobs';
+
+export async function handler(event) {
     if (event.httpMethod !== 'POST') {
-        return { statusCode: 405, body: 'Method Not Allowed' };
+        return { statusCode: 405, body: 'Méthode non autorisée' };
     }
 
-    const body = JSON.parse(event.body);
-    const newData = body.jsonData; // JSON envoyé depuis le frontend
-    const githubToken = process.env.GITHUB_TOKEN; // À définir dans Netlify
-    const owner = 'louisdhebrail';
-    const repo = 'Santoral-Misericordia';
-    const path = 'data/donnees.json';
+    try {
+        const body = JSON.parse(event.body);
+        const newData = body.jsonData;
 
-    try {    // Récupérer le SHA du fichier existant
-        const getResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
-            headers: { Authorization: `token ${githubToken}` }
+
+        const store = getStore({
+            name: 'donnees',
+            siteID: process.env.NETLIFY_SITE_ID,
+            token: process.env.NETLIFY_API_TOKEN
         });
-        const getData = await getResponse.json();
-        const sha = getData.sha;
-
-        // Mettre à jour le fichier
-        const putResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
-            method: 'PUT',
-            headers: { Authorization: `token ${githubToken}` },
-            body: JSON.stringify({
-                message: 'Mise à jour via Netlify Function',
-                content: Buffer.from(JSON.stringify(newData, null, 2)).toString('base64'),
-                sha
-            })
-        });
-
-        const putData = await putResponse.json();
+        await store.setJSON('donnees.json', newData);
 
         return {
             statusCode: 200,
-            body: JSON.stringify({ success: true, result: putData })
+            body: JSON.stringify({ success: true, message: 'Données mises à jour dans Netlify Blobs !' })
         };
-    } catch (error) {
-        return { statusCode: 500, body: JSON.stringify({ error: error.message }) };
+    } catch (err) {
+        return {
+            statusCode: 500,
+            body: JSON.stringify({ success: false, error: err.message })
+        };
     }
-};
+}

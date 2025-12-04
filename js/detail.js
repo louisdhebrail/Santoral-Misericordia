@@ -17,9 +17,11 @@ const moisNoms = [
 let jsonData = {};
 let tableau = []; // le tableau des jours
 let indexCourant = -1;
+let indexAff = null;
+let itemAff = null;
 
 // Charger les données
-fetch("./data/donnees.json?v=${Date.now()}")
+fetch("/.netlify/functions/get-json")
   .then(res => res.json())
   .then(data => {
     jsonData = data;
@@ -61,6 +63,15 @@ function afficherJour(index, annee, cibleID) {
 
   const [mois, jour] = item.Fechas.split("-").map(x => parseInt(x, 10));
 
+  // Fêtes mobiles
+  const fetesMobiles = getFetesMobiles(annee);
+  const feteDuJour = fetesMobiles.find(fete =>
+    mois === fete.date.month && jour === fete.date.day
+  );
+
+  if (feteDuJour) {
+    item = tableau.find(obj => obj.Fechas === `${feteDuJour.nom}`);
+  }
 
   if (cibleID === "contenu-current") {
     const dateObj = new Date(annee, mois - 1, jour);
@@ -71,18 +82,10 @@ function afficherJour(index, annee, cibleID) {
     document.getElementById("back").onclick = () => {
       window.location.href = `index.html?mois=${mois}-${year}`;
     };
-
+    itemAff = item;
+    indexAff = tableau.findIndex(i => i === itemAff);
   }
 
-  // Fêtes mobiles
-  const fetesMobiles = getFetesMobiles(annee);
-  const feteDuJour = fetesMobiles.find(fete =>
-    mois === fete.date.month && jour === fete.date.day
-  );
-
-  if (feteDuJour) {
-    item = tableau.find(obj => obj.Fechas === `${feteDuJour.nom}`);
-  }
   // Temps liturgique
   let temps = getTempsLiturgique(annee, mois, jour);
 
@@ -185,7 +188,7 @@ calendar.addEventListener("touchend", () => {
   isSwiping = false;
 
   // swipe validé si > 50px
-  if (Math.abs(deltaX) > 10) {
+  if (Math.abs(deltaX) > 70) {
     if (deltaX < 0) {
       // gauche → mois suivant
       calendar.style.transition = "transform 0.3s ease";
@@ -220,7 +223,7 @@ calendar.addEventListener("touchend", () => {
   } else {
     // retour au centre si swipe trop court
     calendar.style.transition = "transform 0.3s ease";
-    calendar.style.transform = "translateX(0)";
+    calendar.style.transform = "translateX(-100vw)";
   }
 
   deltaX = 0;
@@ -444,6 +447,7 @@ function getTempsLiturgique(year, mois, jour) {
   // Semaine Sainte
   if (d >= dSemaineSainteDebut && d < dPaques) {
     const jourSemaineSainte = d.getDay();
+    const diffDays = Math.floor((d - premierDimancheCareme) / (1000 * 60 * 60 * 24));
     const semaineCareme = Math.floor(diffDays / 7) + 1;
     return { nom: " Santo", numero: joursSemaine[jourSemaineSainte], psalterio: romanWeek[(semaineCareme - 1) % 4] };
   }
@@ -496,29 +500,84 @@ function toMinuit(date) {
 const editBtn = document.getElementById('editBtn');
 const editFormContainer = document.getElementById('editFormContainer');
 const cancelBtn = document.getElementById('cancelBtn');
-const jsonInput = document.getElementById('jsonInput');
+const infos = document.getElementById('contenu-container')
+const form = document.getElementById('inputsContainer');
 
+// const jsonInput = document.getElementById('jsonInput');
+
+function showToast(msg, { duration = 3000, background = "green", gravity = "bottom", borderRadius = "70px", position = "center", padding = "10px 50px" } = {}) {
+  Toastify({
+    text: msg,
+    duration: duration,
+    gravity: gravity,
+    position: position,
+    style: { background, borderRadius, padding }
+  }).showToast();
+};
 
 // Quand on clique sur “Modifier”
-editBtn.addEventListener('click', () => {
-  // Remplir le textarea avec les données du jour uniquement
-  jsonInput.value = JSON.stringify(tableau[indexCourant], null, 2);
-  editFormContainer.style.display = 'block';
-  editBtn.style.display = 'none';
+editBtn.addEventListener('click', async () => {
+  const password = prompt("🔒 Entrar clave para modificar datos :");
+  if (!password) return;
+
+  // On envoie le mot de passe à une Netlify Function pour vérification
+  const res = await fetch("/.netlify/functions/check-password", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ password })
+  });
+  const data = await res.json();
+
+  if (data.valid) {
+    showToast("✅ Acceso autorizado");
+    // Remplir le textarea avec les données du jour uniquement
+    // jsonInput.value = JSON.stringify(tableau[indexCourant], null, 2);
+    editFormContainer.style.display = 'block';
+    editBtn.style.display = 'none';
+    infos.style.display = 'none';
+
+    // Génération dynamique
+    for (const [key, value] of Object.entries(itemAff)) {
+      const label = document.createElement('label');
+      label.textContent = key;
+      label.className = 'detail-title'
+
+      const input = document.createElement('input');
+      input.name = key;
+      input.value = value;
+      input.className = 'detail-box';
+
+      if (key === "Fechas") {
+        input.readOnly = true;
+        input.style.backgroundColor = "#c1c1c1";
+      }
+      label.appendChild(document.createElement('br'));
+      label.appendChild(input);
+      form.appendChild(label);
+      form.appendChild(document.createElement('br'));
+    }
+
+
+  } else {
+    showToast("❌ Clave incorrecta", { background: "red" });
+  }
 });
 
 // Annuler
 cancelBtn.addEventListener('click', () => {
+  form.innerHTML = ''; // supprime tout le contenu du formulaire
   editFormContainer.style.display = 'none';
+  editBtn.style.display = 'block';
+  infos.style.display = 'block';
 });
 
 const editForm = document.getElementById('editForm');
 editForm.addEventListener('submit', async (e) => {
   e.preventDefault();
-  const newDayData = JSON.parse(jsonInput.value);
-
+  const formData = new FormData(editForm);
+  const newDayData = Object.fromEntries(formData.entries());
   // Mettre à jour le JSON global localement
-  tableau[indexCourant] = newDayData;
+  tableau[indexAff] = newDayData;
   jsonData.data = tableau; // mettre à jour l’objet global
   jsonData.version = new Date().toISOString(); // mettre à jour la version
   // Envoyer à la Netlify Function
@@ -530,9 +589,13 @@ editForm.addEventListener('submit', async (e) => {
 
   const result = await response.json();
   if (result.success) {
-    alert('Actualización exitosa !');
-    editFormContainer.style.display = 'none';
+    showToast('Actualización exitosa !');
+
   } else {
-    alert('Error : ' + result.error);
+    show('Error : ' + result.error, { backgroundColor: 'red' });
   }
+  editFormContainer.style.display = 'none';
+  editBtn.style.display = 'block';
+  infos.style.display = 'block';
+  form.innerHTML = '';
 });

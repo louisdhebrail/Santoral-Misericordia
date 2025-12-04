@@ -299,3 +299,9 @@ header {
     cursor: pointer;
     transition: background-color 0.3s;
 }
+
+button {
+    border-radius: 10px;
+    width: 20vw;
+    padding: 8px;
+}

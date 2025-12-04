@@ -1,0 +1,12 @@
+# Empêcher d'envoyer le dossier des dépendances
+node_modules/
+
+# Fichiers temporaires de Netlify ou d'environnement local
+.netlify/
+.DS_Store
+dist/
+build/
+
+# Cache et logs
+*.log
+npm-debug.log*
