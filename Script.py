@@ -1,10 +1,8 @@
 import pandas as pd
 
 # Charger le fichier Excel
-df = pd.read_excel("Santoral.xlsm")
+df = pd.read_excel("santoral.xlsx")
 
-# Vérifie le nom de la colonne de dates
-# Ici j'utilise "Date", à adapter selon ton fichier
 col_date = "Fecha"
 
 # Convertir la colonne de dates en datetime

@@ -34,7 +34,11 @@ fetch("/.netlify/functions/get-json")
 
     // Navigation
     document.getElementById("prev").onclick = () => {
-      if (indexCourant > 0) {
+      if (indexCourant === 60 && !((year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0))) {
+        indexCourant = 58;
+        afficherTousLesJours(indexCourant);
+      }
+      else if (indexCourant > 0) {
         indexCourant--;
         afficherTousLesJours(indexCourant);
       }
@@ -45,7 +49,11 @@ fetch("/.netlify/functions/get-json")
       }
     };
     document.getElementById("next").onclick = () => {
-      if (indexCourant < 365) {
+      if (indexCourant === 58 && !((year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0))) {
+        indexCourant = 60;
+        afficherTousLesJours(indexCourant);
+      }
+      else if (indexCourant < 365) {
         indexCourant++;
         afficherTousLesJours(indexCourant);
       }
@@ -70,7 +78,7 @@ function afficherJour(index, annee, cibleID) {
   );
 
   if (feteDuJour) {
-    item = tableau.find(obj => obj.Fechas === `${feteDuJour.nom}`);
+    item = tableau.find(obj => obj["Misericordia chile"] === `${feteDuJour.nom}`);
   }
 
   if (cibleID === "contenu-current") {
@@ -145,16 +153,22 @@ function afficherTousLesJours(index) {
   if (index === 0) {
     afficherJour(365, year - 1, "contenu-prev");
   }
+  // else if ((index - 1).Fechas === "02-29" && !((year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0))) {
+  //   afficherJour(index - 2, year, "contenu-prev");
+  // }
   else {
     afficherJour(index - 1, year, "contenu-prev");
   }
   if (index === 365) {
     afficherJour(0, year + 1, "contenu-next");
   }
+  // else if ((index + 1).Fechas === "02-29" && !((year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0))) {
+  //   afficherJour(index + 2, year, "contenu-next");
+  // }
   else {
     afficherJour(index + 1, year, "contenu-next");
   }
-}
+};
 
 document.getElementById('contenu-slider').style.transform = 'translateX(-100vw)';
 
@@ -257,36 +271,50 @@ function addDaysToDate(month, day, year, offset) {
 
 function getFetesMobiles(year) {
   const paques = datePaques(year);
-  /*
-  | Fête                                      | Date par rapport à Pâques                                                         |
-| ----------------------------------------- | --------------------------------------------------------------------------------- |
-| **Mercredi des Cendres**                  | 46 jours avant Pâques                                                             |
-| **Dimanche des Rameaux et de la Passion** | 1 semaine avant Pâques                                                            |
-| **Jeudi Saint (Cène du Seigneur)**        | 3 jours avant Pâques                                                              |
-| **Vendredi Saint**                        | 2 jours avant Pâques                                                              |
-| **Samedi Saint (Veillée pascale)**        | 1 jour avant Pâques                                                               |
-| **Dimanche de Pâques (Résurrection)**     | date centrale, variable                                                           |
-| **Lundi de Pâques**                       | lendemain de Pâques                                                               |
-| **Ascension**                             | 40 jours après Pâques (souvent transférée au dimanche suivant dans certains pays) |
-| **Pentecôte**                             | 50 jours après Pâques                                                             |
-| **Lundi de Pentecôte**                    | lendemain de Pentecôte                                                            |
-| **Fête de la Sainte Trinité**             | dimanche après Pentecôte                                                          |
-| **Fête du Saint-Sacrement (Fête-Dieu)**   | jeudi après la Trinité (souvent transférée au dimanche suivant)                   |
-| **Fête du Sacré-Cœur**                    | vendredi après la Fête-Dieu                                                       |
-| **Immaculé Cœur de Marie**                | samedi après le Sacré-Cœur                                                        |
-| **Christ Roi de l’Univers**               | dimanche précédant le 1er dimanche de l’Avent                                     |
-*/
+  let dSainteFamille = new Date(year, 11, 26); // 26 décembre
 
+  dSainteFamille.setDate(
+    dSainteFamille.getDate() + ((7 - dSainteFamille.getDay()) % 7)
+  );
 
-  // Calcul des fêtes mobiles
+  // cas spécial si Noël est dimanche
+  let noel = new Date(year, 11, 25);
+  if (noel.getDay() === 0) {
+    dSainteFamille = new Date(year, 11, 30);
+  }
+  let dEpiphanie = new Date(year, 0, 2); // 2 janvier
+  dEpiphanie.setDate(dEpiphanie.getDate() + ((7 - dEpiphanie.getDay()) % 7)); // premier dimanche de janvier
+  let dBapteme = new Date(dEpiphanie);
+  dBapteme.setDate(dBapteme.getDate() + 7);
+
+  if (dEpiphanie.getDate() >= 7) {
+    dBapteme.setDate(dEpiphanie.getDate() + 1); // lundi
+  }
+
   return [
     {
       nom: "Miércoles de Ceniza",
       date: addDaysToDate(paques.month, paques.day, year, -46) // 46 días antes de Pascua
     },
     {
-      nom: "Domingo de Ramos y de la Pasión",
+      nom: "Santa Maria junto a la Cruz",
+      date: addDaysToDate(paques.month, paques.day, year, -9) // 9 días antes de Pascua
+    },
+    {
+      nom: "Domingo de Ramos",
       date: addDaysToDate(paques.month, paques.day, year, -7) // 1 semana antes de Pascua
+    },
+    {
+      nom: "Lunes Santo",
+      date: addDaysToDate(paques.month, paques.day, year, -6) // 6 días antes de Pascua
+    },
+    {
+      nom: "Martes Santo",
+      date: addDaysToDate(paques.month, paques.day, year, -5) // 5 días antes de Pascua
+    },
+    {
+      nom: "Miércoles Santo",
+      date: addDaysToDate(paques.month, paques.day, year, -4) // 4 días antes de Pascua
     },
     {
       nom: "Jueves Santo",
@@ -301,15 +329,15 @@ function getFetesMobiles(year) {
       date: addDaysToDate(paques.month, paques.day, year, -1) // 1 día antes de Pascua
     },
     {
-      nom: "Domingo de Pascua",
+      nom: "Domingo de Resurrección",
       date: addDaysToDate(paques.month, paques.day, year, 0) // Pascua
     },
     {
-      nom: "Lunes de Pascua",
-      date: addDaysToDate(paques.month, paques.day, year, 1) // día después de Pascua
+      nom: "Divina Misericordia",
+      date: addDaysToDate(paques.month, paques.day, year, 7) // Pascua
     },
     {
-      nom: "Ascensión",
+      nom: "Ascensión del Señor",
       date: addDaysToDate(paques.month, paques.day, year, 39) // 40 días después de Pascua
     },
     {
@@ -317,11 +345,15 @@ function getFetesMobiles(year) {
       date: addDaysToDate(paques.month, paques.day, year, 49) // 50 días después de Pascua
     },
     {
-      nom: "Lunes de Pentecostés",
-      date: addDaysToDate(paques.month, paques.day, year, 50) // día después de Pentecostés
+      nom: "Santa Maria, Madre de la Iglesia",
+      date: addDaysToDate(paques.month, paques.day, year, 50) // Lunes de Pentecostés
     },
     {
-      nom: "Fiesta de la Santísima Trinidad",
+      nom: "Jesucristo, sumo y eterno sacerdote",
+      date: addDaysToDate(paques.month, paques.day, year, 53) // Jueves después de Pentecostés
+    },
+    {
+      nom: "La Santisima Trinidad",
       date: addDaysToDate(paques.month, paques.day, year, 56) // domingo después de Pentecostés
     },
     {
@@ -333,12 +365,24 @@ function getFetesMobiles(year) {
       date: addDaysToDate(paques.month, paques.day, year, 61) // viernes después del Corpus Christi
     },
     {
-      nom: "Inmaculado Corazón de María",
+      nom: "Corazón Inmaculado de María",
       date: addDaysToDate(paques.month, paques.day, year, 62) // sábado después del Sagrado Corazón
     },
     {
-      nom: "Cristo Rey del Universo",
+      nom: "Cristo-Rey",
       date: calculateCristoRey(year) // función especial para calcular el domingo antes del Adviento
+    },
+    {
+      nom: "Sagrada Familia",
+      date: dSainteFamille // domingo después de Noël
+    },
+    {
+      nom: "Epifania del Señor",
+      date: dEpiphanie // primer domingo de enero
+    },
+    {
+      nom: "Bautismo de Jesús",
+      date: dBapteme // domingo después de Epifania
     }
   ];
 }
@@ -384,8 +428,15 @@ function getTempsLiturgique(year, mois, jour) {
 
   // Noël : du 25 décembre au Baptême du Seigneur (dimanche après le 6 janvier)
   const dNoel = new Date(year, 11, 25);
-  let dBapteme = new Date(year, 0, 6); // 6 janvier
-  dBapteme.setDate(dBapteme.getDate() + ((7 - dBapteme.getDay()) % 7)); // dimanche après 6 janvier
+  let dEpiphanie = new Date(year, 0, 2); // 2 janvier
+  dEpiphanie.setDate(dEpiphanie.getDate() + ((7 - dEpiphanie.getDay()) % 7)); // premier dimanche 
+
+  let dBapteme = new Date(dEpiphanie);
+  dBapteme.setDate(dBapteme.getDate() + 7);
+
+  if (dEpiphanie.getDate() >= 7) {
+    dBapteme.setDate(dEpiphanie.getDate() + 1); // lundi
+  }
 
   // Avent : commence 4 dimanches avant Noël
   let premierDimancheAvent = new Date(dNoel);
@@ -446,17 +497,20 @@ function getTempsLiturgique(year, mois, jour) {
   }
   // Semaine Sainte
   if (d >= dSemaineSainteDebut && d < dPaques) {
-    const jourSemaineSainte = d.getDay();
     const diffDays = Math.floor((d - premierDimancheCareme) / (1000 * 60 * 60 * 24));
     const semaineCareme = Math.floor(diffDays / 7) + 1;
-    return { nom: " Santo", numero: joursSemaine[jourSemaineSainte], psalterio: romanWeek[(semaineCareme - 1) % 4] };
+    return { nom: "Semana Santa", numero: "", psalterio: romanWeek[(semaineCareme - 1) % 4] };
   }
   // Pâques
   if (d.getTime() === dPaques.getTime()) {
     return { nom: "Pascua", numero: "", psalterio: romanWeek[0] };
   }
+  // Octave de Pâques
+  if (d > dPaques && d <= dPaques + 6) {
+    return { nom: "Octava de Pascua", numero: null, psalterio: romanWeek[(semainePascal - 1) % 4] };
+  }
   // Temps Pascal
-  if (d > dPaques && d <= dPentecote) {
+  if (d > dPaques + 6 && d <= dPentecote) {
     const diffDays = Math.floor((d - dPaques) / (1000 * 60 * 60 * 24));
     const semainePascal = Math.floor(diffDays / 7) + 1;
     return { nom: "° semana del Tiempo Pascual", numero: Math.max(1, semainePascal), psalterio: romanWeek[(semainePascal - 1) % 4] };
@@ -505,7 +559,7 @@ const form = document.getElementById('inputsContainer');
 
 // const jsonInput = document.getElementById('jsonInput');
 
-function showToast(msg, { duration = 3000, background = "green", gravity = "bottom", borderRadius = "70px", position = "center", padding = "10px 50px" } = {}) {
+function showToast(msg, { duration = 2000, background = "green", gravity = "bottom", borderRadius = "70px", position = "center", padding = "10px 50px" } = {}) {
   Toastify({
     text: msg,
     duration: duration,
@@ -542,7 +596,8 @@ editBtn.addEventListener('click', async () => {
       label.textContent = key;
       label.className = 'detail-title'
 
-      const input = document.createElement('input');
+      const input = document.createElement('textarea');
+      input.rows = 1;
       input.name = key;
       input.value = value;
       input.className = 'detail-box';
@@ -555,6 +610,8 @@ editBtn.addEventListener('click', async () => {
       label.appendChild(input);
       form.appendChild(label);
       form.appendChild(document.createElement('br'));
+      input.style.height = input.scrollHeight + "px";
+
     }
 
 
@@ -598,4 +655,4 @@ editForm.addEventListener('submit', async (e) => {
   editBtn.style.display = 'block';
   infos.style.display = 'block';
   form.innerHTML = '';
-});
+}); 

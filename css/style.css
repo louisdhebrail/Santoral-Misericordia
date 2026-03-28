@@ -240,6 +240,9 @@ header {
     margin-bottom: 15px;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
     font-size: clamp(17px, 3vw, 21px);
+    height: auto;
+    width: 88vw;
+    max-width: 600px;
 }
 
 .detail-title {
