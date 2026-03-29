@@ -10,13 +10,13 @@ export async function handler() {
         const jsonData = JSON.parse(rawData);
 
         // Initialise le “store” de données Netlify Blobs
-        const isLocal = process.env.NETLIFY_DEV === 'true';
-        const store = getStore(isLocal ? {
+        const isManual = process.env.NETLIFY_DEV === 'true' || !process.env.NETLIFY_BLOBS_CONTEXT;
+
+        const store = getStore(isManual ? {
             name: 'donnees',
             siteID: process.env.NETLIFY_SITE_ID,
             token: process.env.NETLIFY_API_TOKEN,
         } : 'donnees');
-
 
         // Enregistre ton fichier JSON dans le store
         await store.setJSON('donnees.json', jsonData);
