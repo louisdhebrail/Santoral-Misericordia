@@ -507,7 +507,9 @@ function getTempsLiturgique(year, mois, jour) {
   }
   // Octave de Pâques
   if (d > dPaques && d <= dPaques + 6) {
-    return { nom: "Octava de Pascua", numero: null, psalterio: romanWeek[(semainePascal - 1) % 4] };
+    const diffDays = Math.floor((d - dPaques) / (1000 * 60 * 60 * 24));
+    const semainePascal = diffDays + 1;
+    return { nom: "Octava de Pascua", numero: "", psalterio: romanWeek[(semainePascal - 1) % 4] };
   }
   // Temps Pascal
   if (d > dPaques + 6 && d <= dPentecote) {
