@@ -5,7 +5,9 @@ import path from 'path';
 export async function handler() {
     try {
         // Ouvre ton fichier JSON local
-        const filePath = path.join('/var/task', 'data', 'donnees.json');
+        console.log('cwd:', process.cwd());
+        console.log('dirname:', path.dirname(new URL(import.meta.url).pathname));
+        const filePath = path.join(__dirname, '..', '..', 'data', 'donnees.json');
         const rawData = fs.readFileSync(filePath, 'utf8');
         const jsonData = JSON.parse(rawData);
 

@@ -1,2 +1,2 @@
 [functions]
-included_files = ["/data/donnees.json"]
+included_files = ["data/donnees.json"]
