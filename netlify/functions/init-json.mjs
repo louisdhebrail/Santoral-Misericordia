@@ -5,9 +5,14 @@ import path from 'path';
 export async function handler() {
     try {
         // Ouvre ton fichier JSON local
-        console.log('cwd:', process.cwd());
-        console.log('dirname:', path.dirname(new URL(import.meta.url).pathname));
-        const filePath = path.join(__dirname, '..', '..', 'data', 'donnees.json');
+        // Log de débogage
+        const dir = '/var/task/data';
+        const exists = fs.existsSync(dir);
+        const files = exists ? fs.readdirSync(dir) : [];
+        console.log('data/ existe:', exists, '| fichiers:', files);
+
+        const filePath = '/var/task/data/donnees.json';
+        // ...reste de votre code
         const rawData = fs.readFileSync(filePath, 'utf8');
         const jsonData = JSON.parse(rawData);
 
