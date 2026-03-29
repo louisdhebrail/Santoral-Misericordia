@@ -4,7 +4,7 @@
 // - vérification en arrière-plan: compare uniquement le champ "version" du JSON (si présent)
 // - n'interfère pas avec les ressources cross-origin, le manifest, ni les autres Netlify functions
 
-const CACHE_NAME = "pwa-cache-v4";
+const CACHE_NAME = "pwa-cache-v5";
 const DATA_CACHE = "data-cache-v1";
 const DATA_URL = "/.netlify/functions/get-json";
 
