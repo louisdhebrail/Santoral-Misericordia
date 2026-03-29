@@ -5,23 +5,18 @@ import path from 'path';
 export async function handler() {
     try {
         // Ouvre ton fichier JSON local
-        // Log de débogage
-        const dir = '/var/task/data';
-        const exists = fs.existsSync(dir);
-        const files = exists ? fs.readdirSync(dir) : [];
-        console.log('data/ existe:', exists, '| fichiers:', files);
-
-        const filePath = '/var/task/data/donnees.json';
-        // ...reste de votre code
+        const filePath = path.join(process.cwd(), 'data', 'donnees.json');
         const rawData = fs.readFileSync(filePath, 'utf8');
         const jsonData = JSON.parse(rawData);
 
         // Initialise le “store” de données Netlify Blobs
-        const store = getStore({
+        const isLocal = process.env.NETLIFY_DEV === 'true';
+        const store = getStore(isLocal ? {
             name: 'donnees',
             siteID: process.env.NETLIFY_SITE_ID,
             token: process.env.NETLIFY_API_TOKEN,
-        });
+        } : 'donnees');
+
 
         // Enregistre ton fichier JSON dans le store
         await store.setJSON('donnees.json', jsonData);
