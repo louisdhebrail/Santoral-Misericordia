@@ -123,14 +123,14 @@ function afficherJour(index, annee, cibleID) {
       <div class="detail-box">${item["En el Breviario Castellano"]}</div>
     ` : ''}
 
-    ${item["Celebracion Celebration"] ? `
+    ${item["Celebración"] ? `
       <div class="detail-title">Celebración</div>
-      <div class="detail-box">${item["Celebracion Celebration"]}</div>
+      <div class="detail-box">${item["Celebración"]}</div>
     ` : ''}
 
-    ${item["Couleur / Color"] ? `
+    ${item["Color"] ? `
       <div class="detail-title">Color</div>
-      <div class="detail-box">${item["Couleur / Color"]}</div>
+      <div class="detail-box">${item["Color"]}</div>
     ` : ''}
   </div>`;
     document.getElementById(cibleID).innerHTML = contenuHtml;
@@ -422,9 +422,11 @@ function getTempsLiturgique(year, mois, jour) {
   const dSemaineSainteDebut = new Date(year, semaineSainteDebut.month - 1, semaineSainteDebut.day);
 
   // Temps Pascal = de Pâques à Pentecôte (49 jours)
-  const pentecote = addDaysToDate(paques.month, paques.day, year, 49);
   const dPaques = new Date(year, paques.month - 1, paques.day);
+  const pentecote = addDaysToDate(paques.month, paques.day, year, 49);
   const dPentecote = new Date(year, pentecote.month - 1, pentecote.day);
+  const octavePaques = addDaysToDate(paques.month, paques.day, year, 7);
+  const dOctavePaques = new Date(year, octavePaques.month - 1, octavePaques.day);
 
   // Noël : du 25 décembre au Baptême du Seigneur (dimanche après le 6 janvier)
   const dNoel = new Date(year, 11, 25);
@@ -501,18 +503,14 @@ function getTempsLiturgique(year, mois, jour) {
     const semaineCareme = Math.floor(diffDays / 7) + 1;
     return { nom: "Semana Santa", numero: "", psalterio: romanWeek[(semaineCareme - 1) % 4] };
   }
-  // Pâques
-  if (d.getTime() === dPaques.getTime()) {
-    return { nom: "Pascua", numero: "", psalterio: romanWeek[0] };
-  }
   // Octave de Pâques
-  if (d > dPaques && d <= dPaques + 6) {
+  if (d >= dPaques && d <= dOctavePaques) {
     const diffDays = Math.floor((d - dPaques) / (1000 * 60 * 60 * 24));
-    const semainePascal = diffDays + 1;
+    const semainePascal = Math.floor(diffDays / 7) + 1;
     return { nom: "Octava de Pascua", numero: "", psalterio: romanWeek[(semainePascal - 1) % 4] };
   }
   // Temps Pascal
-  if (d > dPaques + 6 && d <= dPentecote) {
+  if (d > dOctavePaques && d <= dPentecote) {
     const diffDays = Math.floor((d - dPaques) / (1000 * 60 * 60 * 24));
     const semainePascal = Math.floor(diffDays / 7) + 1;
     return { nom: "° semana del Tiempo Pascual", numero: Math.max(1, semainePascal), psalterio: romanWeek[(semainePascal - 1) % 4] };
