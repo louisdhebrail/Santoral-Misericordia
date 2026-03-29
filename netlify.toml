@@ -1,2 +1,2 @@
 [functions]
-included_files = ["netlify/functions/data/**"]
+included_files = ["/data/donnees.json"]

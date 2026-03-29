@@ -5,7 +5,7 @@ import path from 'path';
 export async function handler() {
     try {
         // Ouvre ton fichier JSON local
-        const filePath = path.resolve('data/donnees.json');
+        const filePath = path.join(new URL('.', import.meta.url).pathname, 'data', 'donnees.json');
         const rawData = fs.readFileSync(filePath, 'utf8');
         const jsonData = JSON.parse(rawData);
 
