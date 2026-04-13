@@ -1,12 +1,11 @@
 body {
     font-family: 'Lekton', sans-serif;
-    font-size: clamp(20px, 3vw, 25px);
+    font-size: clamp(22px, 3vw, 25px);
     background-color: #FFD100;
     margin: 0;
-    padding: 0px;
+    padding: 0;
     text-align: center;
-    padding-bottom: 80px;
-
+    padding-bottom: 90px;
 }
 
 @font-face {
@@ -23,39 +22,317 @@ body {
     src: url(../fonts/nc-medium.woff2) format("woff2"), url(../fonts/nc-medium.woff) format("woff")
 }
 
-.header {
+/* ── HEADER ── */
+header {
     display: flex;
+    top: 0;
     justify-content: space-between;
     align-items: center;
-    position: relative;
-    font-size: 10px;
+    position: sticky;
+    z-index: 1000;
+    background-color: #FFD100;
+    padding: 4px 0;
 }
 
-h1 {
+h1,
+.titre {
     font-size: clamp(35px, 8vw, 55px);
     font-family: 'NC';
     font-weight: 700;
     text-transform: uppercase;
+    margin: 0 0 0 5vw;
+    letter-spacing: 0.02em;
     display: flex;
-    justify-content: left;
-    margin: 0px 0px 0px 6vw;
 }
 
 h2 {
-    font-size: clamp(20px, 3.6vw, 28px);
-    margin-bottom: 0px;
-    margin-top: 0px;
-}
-
-#mois {
+    font-size: clamp(25px, 3.6vw, 28px);
+    margin: 0;
+    font-family: 'NC';
+    font-weight: 400;
     text-align: center;
+    letter-spacing: 0.02em;
 }
 
+.logo {
+    height: clamp(65px, 12vw, 90px);
+    width: auto;
+}
+
+.logoleft {
+    width: clamp(65px, 12vw, 90px);
+}
+
+/* ── DATE NAV ── */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 0 4vw 8px;
+}
+
+#prev,
+#next {
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 5px 13px;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.1);
+    transition: background 0.2s;
+    user-select: none;
+    line-height: 1;
+}
+
+#prev:hover,
+#next:hover {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+/* ── SLIDER ── */
+#contenu-container {
+    width: 100vw;
+    overflow: hidden;
+    position: relative;
+}
+
+#contenu-slider {
+    width: 300%;
+    display: flex;
+    transition: transform 0.3s;
+}
+
+#contenu-prev,
+#contenu-current,
+#contenu-next {
+    display: flex;
+    justify-content: center;
+    width: 100vw;
+    margin-top: 8px;
+}
+
+/* ── DETAIL LAYOUT ── */
+.detail-container {
+    width: 90vw;
+    max-width: 560px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    text-align: left;
+}
+
+/* ── LIGNE TEMPS + PASTILLE ── */
+.top-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 0 2px;
+}
+
+.temps-label {
+    font-family: 'Lekton', sans-serif;
+    font-size: clamp(14px, 2.4vw, 17px);
+    color: #333;
+    display: flex;
+    align-items: baseline;
+    gap: 5px;
+    flex-wrap: wrap;
+    flex: 1;
+}
+
+.temps-num {
+    font-family: 'NC';
+    font-weight: 700;
+    font-size: clamp(16px, 3vw, 22px);
+    color: #111;
+}
+
+.psalterio-pill {
+    font-size: clamp(11px, 1.8vw, 14px);
+    color: #555;
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 20px;
+    padding: 2px 9px;
+    margin-left: 2px;
+    white-space: nowrap;
+}
+
+/* ── PASTILLE COULEUR ── */
+.color-dot {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
+}
+
+/* ── CARTE SAINT ── */
+.saint-card {
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 16px 18px 18px;
+    box-shadow: 0 3px 14px rgba(0, 0, 0, 0.12);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.saint-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    min-height: 24px;
+}
+
+.saint-name {
+    font-family: 'NC';
+    font-weight: 700;
+    font-size: clamp(20px, 4.2vw, 32px);
+    text-transform: uppercase;
+    color: #111;
+    line-height: 1.15;
+}
+
+/* ── BADGE CÉLÉBRATION ── */
+.cel-badge {
+    display: inline-block;
+    padding: 3px 12px;
+    border-radius: 20px;
+    font-size: clamp(11px, 1.9vw, 14px);
+    font-family: 'Lekton', sans-serif;
+    font-weight: bold;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+/* ── BADGE AYUNO ── */
+.ayuno-badge {
+    display: inline-block;
+    padding: 3px 11px;
+    border-radius: 20px;
+    font-size: clamp(11px, 1.9vw, 14px);
+    font-family: 'Lekton', sans-serif;
+    background: #fff3cd;
+    color: #7a5000;
+    border: 1.5px solid #e8c840;
+}
+
+/* ── CARTE BREVIARIO ── */
+.info-card {
+    background: #ffffff;
+    border-radius: 15px;
+    padding: 14px 18px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.09);
+    text-align: left;
+}
+
+.info-card-label {
+    font-size: clamp(10px, 1.7vw, 13px);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #999;
+    margin-bottom: 6px;
+    font-family: 'Lekton', sans-serif;
+}
+
+.info-card-text {
+    font-size: clamp(14px, 2.5vw, 18px);
+    color: #222;
+    line-height: 1.55;
+    font-family: 'Lekton', sans-serif;
+}
+
+/* ── BOUTONS BAS ── */
+.today-btn {
+    position: fixed;
+    bottom: 2vh;
+    right: 5vw;
+    /* background: black;
+    color: white; */
+    border-radius: 10px;
+    width: 20vw;
+    max-width: 80px;
+    cursor: pointer;
+    /* opacity: 0.7; */
+    /* transition: opacity 0.2s; */
+    padding: 6px;
+    font-family: 'NC';
+    letter-spacing: 0.02em;
+    /* font-size: clamp(14px, 2.5vw, 18px); */
+    text-align: center;
+    padding: 5px 13px;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.1);
+    transition: background 0.2s;
+}
+
+.today-btn:hover {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.back-arrow {
+    position: fixed;
+    bottom: 15px;
+    left: clamp(3px, 2.5vw, 25px);
+    width: clamp(35px, 7vw, 45px);
+    background-color: rgba(0, 0, 0, 0.1);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#editBtn {
+    position: fixed;
+    bottom: 15px;
+    width: clamp(35px, 7vw, 45px);
+    background-color: rgba(0, 0, 0, 0.1);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+/* ── FORMULAIRE EDITION ── */
+#editFormContainer {
+    margin: 10px auto;
+    max-width: 560px;
+}
+
+.detail-title {
+    font-size: clamp(24px, 2.3vw, 18px);
+    font-family: 'NC';
+    font-weight: 700;
+    text-transform: uppercase;
+    display: block;
+    margin-top: 10px;
+}
+
+.detail-box {
+    background: white;
+    padding: 6px 10px;
+    border-radius: 10px;
+    margin-bottom: 6px;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.15);
+    font-size: clamp(14px, 2.3vw, 18px);
+    width: 85vw;
+    max-width: 540px;
+    font-family: 'Lekton', sans-serif;
+    border: 1px solid #ddd;
+    resize: vertical;
+}
+
+button {
+    border-radius: 10px;
+    width: 20vw;
+    padding: 8px;
+}
+
+/* ── CALENDRIER (index.html) ── */
 #header button {
     background: none;
     border: none;
     font-size: 28px;
-    /* simple flèche textuelle */
     cursor: pointer;
     transition: color 0.2s;
 }
@@ -94,11 +371,10 @@ h2 {
     row-gap: 15px;
     column-gap: 6px;
     margin-top: 20px;
-    padding: 0px 7px;
+    padding: 0 7px;
     width: 100vw;
     box-sizing: border-box;
     flex-shrink: 0;
-    transition: transform 0.3s ease;
 }
 
 .day {
@@ -112,7 +388,7 @@ h2 {
     transition: transform 0.2s, background 0.2s;
     font-family: 'NC', 'sans-serif';
     font-size: clamp(25px, 7vw, 35px);
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3)
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
 
 .day:hover {
@@ -123,8 +399,7 @@ h2 {
 .day.empty {
     background: transparent;
     cursor: default;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0);
-
+    box-shadow: none;
 }
 
 .day.today {
@@ -136,177 +411,31 @@ h2 {
     transform: scale(1.05);
 }
 
-header {
-    display: flex;
-    top: 0;
-    justify-content: space-between;
-    align-items: center;
-    position: sticky;
-    z-index: 1000;
-    font-size: 10px;
-    background-color: #FFD100;
-
-}
-
-
-.logo {
-    height: clamp(65px, 12vw, 90px);
-    width: auto;
-    position: relative;
-    /* right: clamp(1px, 1.5vw, 20px); */
-}
-
-.logoleft {
-    width: clamp(65px, 12vw, 90px);
-    position: relative;
-    /* left: clamp(1px, 1.5vw, 20px); */
-}
-
-#detail-header {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 20px;
-    margin-bottom: 20px;
-}
-
-
-.arrow {
-    width: 0;
-    height: 0;
-    border-top: 12px solid transparent;
-    border-bottom: 12px solid transparent;
-    cursor: pointer;
-}
-
-.arrow-left {
-    border-right: 20px solid black;
-    position: absolute;
-    left: 0px;
-}
-
-.arrow-right {
-    border-left: 20px solid black;
-    position: absolute;
-    right: 0px;
-}
-
-.arrow:hover {
-    color: red;
-}
-
-/* Contenu détail */
-#contenu-container {
-    width: 100vw;
-    overflow: hidden;
-    position: relative;
-}
-
-#contenu-slider {
-    width: 300%;
-    display: flex;
-    transition: transform 0.3s;
-}
-
-#contenu-prev,
-#contenu-current,
-#contenu-next {
-    display: flex;
-    justify-content: center;
+#mois {
     text-align: center;
-    width: 100vw;
-    margin-top: 4px;
-    /* max-width: 600px; */
-    /* margin-left: 50px;
-    margin-right: 50px; */
-    /* padding: 20px; */
-    /* box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2); */
 }
-
-
-
-#contenu p {
-    background: white;
-}
-
-.detail-container {
-    text-align: center;
-    width: 88vw;
-    max-width: 600px;
-}
-
-.detail-box {
-    background: white;
-    padding: 4px;
-    border-radius: 12px;
-    margin-bottom: 15px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
-    font-size: clamp(17px, 3vw, 21px);
-    height: auto;
-    width: 88vw;
-    max-width: 600px;
-}
-
-.detail-title {
-    font-size: clamp(26px, 4.5vw, 36px);
-    padding: 5px 0;
-    margin-bottom: 8px;
-    font-family: 'NC';
-    font-weight: 700;
-    text-transform: uppercase;
-}
-
 
 #dateLongue {
     text-align: center;
 }
 
-/* Bouton Hoy */
-.today-btn {
-    position: fixed;
-    bottom: 2vh;
-    right: 5vw;
-    background: black;
-    color: white;
-    /* border: none; */
-    border-radius: 10px;
-    width: 20vw;
-    /* padding-left: 5px; */
-    /* font-size: 40px; */
-    cursor: pointer;
-    opacity: 0.7;
-    transition: opacity 0.2s;
-    padding: 5px;
+/* ── AYUNO variants ── */
+.ayuno-si {
+    background: #fff3cd;
+    color: #7a5000;
+    border: 1.5px solid #e8c840;
 }
 
-.today-btn:hover {
-    opacity: 1;
+.ayuno-no {
+    background: #e8f5ec;
+    color: #1a5c30;
+    border: 1.5px solid #6dbf8a;
 }
 
-.back-arrow {
-    position: fixed;
-    bottom: 15px;
-    left: clamp(3px, 2.5vw, 25px);
-    width: clamp(35px, 7vw, 45px);
-    background-color: rgba(128, 128, 128, 0.4);
-    border-radius: 50%;
-    cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-#editBtn {
-    position: fixed;
-    justify-items: center;
-    bottom: 15px;
-    width: clamp(35px, 7vw, 45px);
-    background-color: rgba(128, 128, 128, 0.4);
-    border-radius: 50%;
-    cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-button {
-    border-radius: 10px;
-    width: 20vw;
-    padding: 8px;
+/* ── temps-num dans top-row ── */
+.temps-num {
+    font-family: 'NC';
+    font-weight: 700;
+    font-size: clamp(16px, 3vw, 22px);
+    color: #111;
 }

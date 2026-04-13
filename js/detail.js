@@ -1,658 +1,360 @@
 const params = new URLSearchParams(window.location.search);
-const dateParam = params.get("date"); // format "MM-DD-YYYY"
+const dateParam = params.get("date");
 let [, , year] = dateParam.split("-").map(x => parseInt(x, 10));
-const paques = datePaques(year);
 const today = new Date();
 const romanWeek = ["I", "II", "III", "IV"];
 
-
-const joursSemaine = [
-  "Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"
-];
-const moisNoms = [
-  "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-  "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
-];
+const joursSemaine = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+const moisNoms = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
 let jsonData = {};
-let tableau = []; // le tableau des jours
+let tableau = [];
 let indexCourant = -1;
 let indexAff = null;
 let itemAff = null;
 
-// Charger les données
+// ===== Couleurs liturgiques =====
+const colorMap = {
+  "blanco": "#ffffff",
+  "rojo": "#c0392b",
+  "violet": "#7d3c98",
+  "violeta": "#7d3c98",
+  "morado": "#7d3c98",
+  "verde": "#1e8449",
+  "negro": "#1a1a1a",
+  "rosa": "#d4609a",
+};
+
+function getColorHex(colorStr) {
+  if (!colorStr) return null;
+  const key = colorStr.trim().toLowerCase();
+  if (key.includes("del tiempo")) return null; // calculé selon le temps
+  for (const [k, v] of Object.entries(colorMap)) {
+    if (key.includes(k)) return v;
+  }
+  return null;
+}
+
+function getTempsColor(tempsNom) {
+  const n = (tempsNom || "").toLowerCase();
+  if (n.includes("adviento") || n.includes("cuaresma") || n.includes("ceniza") || n.includes("semana santa")) return "#7d3c98";
+  if (n.includes("navidad") || n.includes("pascua") || n.includes("pascal") || n.includes("pentecost") || n.includes("octava")) return "#ffffff";
+  return "#2e7d45"; // Temps ordinaire = vert
+}
+
+// ===== Rang de célébration =====
+const celebRangs = { "solemnidad": 4, "fiesta": 3, "memoria": 2, "de la feria": 1 };
+
+function getCelebRang(celStr) {
+  if (!celStr) return 0;
+  const key = celStr.trim().toLowerCase();
+  for (const [k, v] of Object.entries(celebRangs)) {
+    if (key.includes(k)) return v;
+  }
+  return 1;
+}
+
+// ===== Badge célébration =====
+const celebStyles = {
+  "solemnidad": { bg: "#1a1a1a", color: "#FFD100" },
+  "fiesta": { bg: "#0d3a6e", color: "#cce0ff" },
+  "memoria": { bg: "#0d4a26", color: "#b8f0d0" },
+  "de la feria": { bg: "#e4e0d4", color: "#555544" },
+  "semana santa": { bg: "#4a1010", color: "#ffd4d4" },
+  "triduum": { bg: "#4a1010", color: "#ffd4d4" },
+  "cuaresma": { bg: "#3d1a5c", color: "#e8d4ff" },
+  "l'avent": { bg: "#3d1a5c", color: "#e8d4ff" },
+  "navidad": { bg: "#7a5200", color: "#fff3cc" },
+  "tiempo pascual": { bg: "#0a4a2a", color: "#c0ffd8" },
+};
+
+function getCelebStyle(celStr) {
+  if (!celStr) return null;
+  const key = celStr.trim().toLowerCase();
+  for (const [k, v] of Object.entries(celebStyles)) {
+    if (key.includes(k)) return { ...v, label: celStr.trim() };
+  }
+  return { bg: "#e4e0d4", color: "#555544", label: celStr.trim() };
+}
+
+// ===== Données temps liturgique depuis le JSON =====
+function getTempsDataKey(temps, mois, jour, annee) {
+  const n = temps.nom ? temps.nom.toLowerCase() : "";
+  if (n.includes("adviento")) {
+    if (mois === 12 && jour === 24) return "Tiempo de Adviento dia 24";
+    if (mois === 12 && jour >= 17 && jour <= 23) return "Tiempo de Adviento del dia 17 hasta el 23";
+    return "Tiempo de Adviento hasta el dia 16";
+  }
+  if (n.includes("navidad")) {
+    const dEp = new Date(annee, 0, 2);
+    dEp.setDate(dEp.getDate() + ((7 - dEp.getDay()) % 7));
+    return new Date(annee, mois - 1, jour) > dEp ? "Semana después de la Epifania" : "Tiempo de Navidad hasta la Epifania";
+  }
+  if (n.includes("cuaresma")) return "Tiempo Cuaresmal";
+  if (n.includes("octava de pascua")) return "Octava de Pascua";
+  if (n.includes("pascual")) return "Tiempo Pascual";
+  return null;
+}
+
+// ===== Chargement =====
 fetch("/.netlify/functions/get-json")
   .then(res => res.json())
   .then(data => {
     jsonData = data;
-    tableau = jsonData.data; // le tableau réel
-
-
-    // Trouver l'index du jour courant
+    tableau = jsonData.data;
     indexCourant = tableau.findIndex(item => item.Fechas === dateParam.slice(0, 5));
     afficherTousLesJours(indexCourant);
 
-    // Navigation
     document.getElementById("prev").onclick = () => {
-      if (indexCourant === 60 && !((year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0))) {
-        indexCourant = 58;
-        afficherTousLesJours(indexCourant);
-      }
-      else if (indexCourant > 0) {
-        indexCourant--;
-        afficherTousLesJours(indexCourant);
-      }
-      else {
-        indexCourant = 365;
-        year--;
-        afficherTousLesJours(indexCourant);
-      }
+      if (indexCourant === 60 && !isLeap(year)) indexCourant = 58;
+      else if (indexCourant > 0) indexCourant--;
+      else { indexCourant = 365; year--; }
+      afficherTousLesJours(indexCourant);
     };
     document.getElementById("next").onclick = () => {
-      if (indexCourant === 58 && !((year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0))) {
-        indexCourant = 60;
-        afficherTousLesJours(indexCourant);
-      }
-      else if (indexCourant < 365) {
-        indexCourant++;
-        afficherTousLesJours(indexCourant);
-      }
-      else {
-        indexCourant = 0;
-        year++;
-        afficherTousLesJours(indexCourant);
-      }
+      if (indexCourant === 58 && !isLeap(year)) indexCourant = 60;
+      else if (indexCourant < 365) indexCourant++;
+      else { indexCourant = 0; year++; }
+      afficherTousLesJours(indexCourant);
     };
   });
 
+function isLeap(y) { return (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0; }
+
+// ===== Affichage principal =====
 function afficherJour(index, annee, cibleID) {
   let item = tableau[index];
   if (!item) return;
-
   const [mois, jour] = item.Fechas.split("-").map(x => parseInt(x, 10));
 
-  // Fêtes mobiles
   const fetesMobiles = getFetesMobiles(annee);
-  const feteDuJour = fetesMobiles.find(fete =>
-    mois === fete.date.month && jour === fete.date.day
-  );
-
+  const feteDuJour = fetesMobiles.find(f => mois === f.date.month && jour === f.date.day);
   if (feteDuJour) {
-    item = tableau.find(obj => obj["Misericordia chile"] === `${feteDuJour.nom}`);
+    const fi = tableau.find(o => o["Misericordia chile"] === feteDuJour.nom);
+    if (fi) item = fi;
   }
 
   if (cibleID === "contenu-current") {
     const dateObj = new Date(annee, mois - 1, jour);
-    const nomJour = joursSemaine[dateObj.getDay()];
-    const nomMois = moisNoms[mois - 1];
-    document.getElementById("dateLongue").textContent = `${nomJour} ${jour} de ${nomMois}`;
+    document.getElementById("dateLongue").textContent = `${joursSemaine[dateObj.getDay()]} ${jour} de ${moisNoms[mois - 1]}`;
     history.replaceState(null, "", `?date=${String(mois).padStart(2, "0")}-${String(jour).padStart(2, "0")}-${year}`);
-    document.getElementById("back").onclick = () => {
-      window.location.href = `index.html?mois=${mois}-${year}`;
-    };
-    itemAff = item;
+    document.getElementById("back").onclick = () => { window.location.href = `index.html?mois=${mois}-${year}`; };
+  }
+
+  const temps = getTempsLiturgique(annee, mois, jour);
+  const rang = getCelebRang(item["Celebración"]);
+
+  // Octava de Pascua : jours 2-7 (pas le Domingo de Resurrección)
+  const enOctava = temps.nom && temps.nom.toLowerCase().includes("octava de pascua")
+    && !(feteDuJour && feteDuJour.nom === "Domingo de Resurrección");
+
+  // Résoudre l'item effectivement affiché (pour l'édition)
+  let itemEffectif = item;
+  if (enOctava) {
+    const octData = tableau.find(o => o["Misericordia chile"] === "Octava de Pascua");
+    if (octData) itemEffectif = octData;
+  } else {
+    const brev = item["En el Breviario Castellano"] || "";
+    if (!brev || brev.trim().toLowerCase().replace(/\s/g, '') === "delordinario") {
+      const key = getTempsDataKey(temps, mois, jour, annee);
+      const td = key ? tableau.find(o => o["Misericordia chile"] === key) : null;
+      if (td) itemEffectif = td;
+    }
+  }
+
+  if (cibleID === "contenu-current") {
+    itemAff = itemEffectif;
     indexAff = tableau.findIndex(i => i === itemAff);
   }
 
-  // Temps liturgique
-  let temps = getTempsLiturgique(annee, mois, jour);
+  // Couleur : celle de la fête si rang > 1 et couleur explicite, sinon couleur du temps
+  let rawColor = rang > 1 ? getColorHex(item["Color"]) : null;
+  const colorHex = rawColor || getTempsColor(temps.nom);
+  const isWhite = colorHex === "#ffffff";
 
-  if (!item) {
-    const contenuHtml = `
-  <div class="detail-container">
-    <div class="detail-title">${feteDuJour.nom}</div>`;
-    document.getElementById(cibleID).innerHTML = contenuHtml;
-  }
-  else {
-    const contenuHtml = `
-  <div class="detail-container">
-    <div class="detail-box">${temps.numero}${temps.nom} <br> Semana ${temps.psalterio} del psalterio</div>
-
-    ${item["Misericordia chile"] ? `
-      <div class="detail-title">Santo del día</div>
-      <div class="detail-box">${item["Misericordia chile"]}</div>
-    ` : ''}
-
-    ${item["Ayuno"] ? `
-      <div class="detail-title">Ayuno</div>
-      <div class="detail-box">${item["Ayuno"]}</div>
-    ` : ''}
-
-    ${item["En el Breviario Castellano"] ? `
-      <div class="detail-title">En el Breviario Castellano</div>
-      <div class="detail-box">${item["En el Breviario Castellano"]}</div>
-    ` : ''}
-
-    ${item["Celebración"] ? `
-      <div class="detail-title">Celebración</div>
-      <div class="detail-box">${item["Celebración"]}</div>
-    ` : ''}
-
-    ${item["Color"] ? `
-      <div class="detail-title">Color</div>
-      <div class="detail-box">${item["Color"]}</div>
-    ` : ''}
-  </div>`;
-    document.getElementById(cibleID).innerHTML = contenuHtml;
+  // Breviario
+  let breviario = item["En el Breviario Castellano"] || "";
+  if (enOctava) {
+    breviario = itemEffectif["En el Breviario Castellano"] || "";
+  } else if (!breviario || breviario.trim().toLowerCase().replace(/\s/g, '') === "delordinario") {
+    if (itemEffectif !== item) breviario = itemEffectif["En el Breviario Castellano"] || "";
   }
 
+  // Ayuno : afficher uniquement si pas de jeûne
+  const ayunoNo = itemEffectif["Ayuno"] && itemEffectif["Ayuno"].trim() === "No";
 
+  // Badge célébration
+  const celStyle = enOctava
+    ? { bg: "#1a1a1a", color: "#FFD100", label: "Solemnidad" }
+    : getCelebStyle(item["Celebración"]);
 
-  // Affiche/cacher le bouton "Hoy"
+  // Nom affiché
+  const dateObjNom = new Date(annee, mois - 1, jour);
+  const nomAffiche = enOctava
+    ? `${joursSemaine[dateObjNom.getDay()]} de la Octava de Pascua`
+    : (item["Misericordia chile"] || '');
+
+  document.getElementById(cibleID).innerHTML = `
+    <div class="detail-container">
+
+      <div class="top-row">
+        <div class="temps-label">
+          <span>${temps.numero}</span>${temps.nom}
+          <span class="psalterio-pill">${temps.psalterio}</span>
+        </div>
+        <div class="color-dot" style="background:${colorHex};${isWhite ? 'border:2.5px solid #bbb;' : ''}"></div>
+      </div>
+
+      <div class="saint-card">
+        <div class="saint-header">
+          ${celStyle ? `<span class="cel-badge" style="background:${celStyle.bg};color:${celStyle.color}">${celStyle.label}</span>` : ''}
+          ${ayunoNo ? `<span class="ayuno-badge ayuno-no">Sin ayuno</span>` : ''}
+        </div>
+        <div class="saint-name">${nomAffiche}</div>
+      </div>
+
+      ${breviario ? `
+      <div class="info-card">
+        <div class="info-card-label">Breviario</div>
+        <div class="info-card-text">${breviario}</div>
+      </div>` : ''}
+
+    </div>`;
+
   const todayBtn = document.getElementById("today");
-  if (mois === today.getMonth() + 1 && jour === today.getDate() + 1) {
-    todayBtn.style.display = "none";
-  } else {
-    todayBtn.style.display = "block";
-  }
+  todayBtn.style.display = (mois === today.getMonth() + 1 && jour === today.getDate()) ? "none" : "block";
 }
 
 function afficherTousLesJours(index) {
   afficherJour(index, year, "contenu-current");
-
-  if (index === 0) {
-    afficherJour(365, year - 1, "contenu-prev");
-  }
-  // else if ((index - 1).Fechas === "02-29" && !((year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0))) {
-  //   afficherJour(index - 2, year, "contenu-prev");
-  // }
-  else {
-    afficherJour(index - 1, year, "contenu-prev");
-  }
-  if (index === 365) {
-    afficherJour(0, year + 1, "contenu-next");
-  }
-  // else if ((index + 1).Fechas === "02-29" && !((year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0))) {
-  //   afficherJour(index + 2, year, "contenu-next");
-  // }
-  else {
-    afficherJour(index + 1, year, "contenu-next");
-  }
-};
+  if (index === 0) afficherJour(365, year - 1, "contenu-prev");
+  else afficherJour(index - 1, year, "contenu-prev");
+  if (index === 365) afficherJour(0, year + 1, "contenu-next");
+  else afficherJour(index + 1, year, "contenu-next");
+}
 
 document.getElementById('contenu-slider').style.transform = 'translateX(-100vw)';
 
-// Bouton Hoy
 document.getElementById("today").onclick = () => {
-  currentMonth = today.getMonth() + 1;
-  currentDay = today.getDate();
-  indexCourant = tableau.findIndex(item => item.Fechas === currentMonth.toString().padStart(2, '0') + '-' + currentDay.toString().padStart(2, '0'));
+  const m = today.getMonth() + 1, d = today.getDate();
+  indexCourant = tableau.findIndex(i => i.Fechas === m.toString().padStart(2, '0') + '-' + d.toString().padStart(2, '0'));
   afficherTousLesJours(indexCourant);
 };
 
-// ==== Gestion du swipe avec effet visuel ====
-const calendar = document.getElementById("contenu-slider");
+// ===== Swipe =====
+const calSlider = document.getElementById("contenu-slider");
 let startX = 0, deltaX = 0, isSwiping = false;
-
-calendar.addEventListener("touchstart", e => {
-  startX = e.touches[0].clientX;
-  isSwiping = true;
-  calendar.style.transition = "none"; // pas d’anim pendant le drag
-});
-
-calendar.addEventListener("touchmove", e => {
-  if (!isSwiping) return;
-  const currentX = e.touches[0].clientX;
-  deltaX = currentX - startX;
-  calendar.style.transform = `translateX(calc(-100vw + ${deltaX}px))`;
-});
-
-calendar.addEventListener("touchend", () => {
-  if (!isSwiping) return;
-  isSwiping = false;
-
-  // swipe validé si > 50px
+calSlider.addEventListener("touchstart", e => { startX = e.touches[0].clientX; isSwiping = true; calSlider.style.transition = "none"; });
+calSlider.addEventListener("touchmove", e => { if (!isSwiping) return; deltaX = e.touches[0].clientX - startX; calSlider.style.transform = `translateX(calc(-100vw + ${deltaX}px))`; });
+calSlider.addEventListener("touchend", () => {
+  if (!isSwiping) return; isSwiping = false;
   if (Math.abs(deltaX) > 70) {
-    if (deltaX < 0) {
-      // gauche → mois suivant
-      calendar.style.transition = "transform 0.3s ease";
-      calendar.style.transform = "translateX(-200vw)";
-      setTimeout(() => {
-        document.getElementById("next").click(); // réutilise ton code existant
-        calendar.style.transition = "none";
-        calendar.style.transform = "translateX(-100vw)";
-
-        // // force le navigateur à appliquer le style précédent
-        // calendar.offsetHeight; // lecture forcée → repaint
-        // requestAnimationFrame(() => {
-        //   calendar.style.transition = "transform 0.3s ease";
-        //   calendar.style.transform = "translateX(0)";
-        // });
-      }, 300);
-    } else {
-      // droite → mois précédent
-      calendar.style.transition = "transform 0.3s ease";
-      calendar.style.transform = "translateX(0vw)";
-      setTimeout(() => {
-        document.getElementById("prev").click();
-        calendar.style.transition = "none";
-        calendar.style.transform = "translateX(-100vw)";
-        // calendar.offsetHeight; // lecture forcée → repaint
-        // requestAnimationFrame(() => {
-        //   calendar.style.transition = "transform 0.3s ease";
-        //   calendar.style.transform = "translateX(0)";
-        // });
-      }, 300);
-    }
-  } else {
-    // retour au centre si swipe trop court
-    calendar.style.transition = "transform 0.3s ease";
-    calendar.style.transform = "translateX(-100vw)";
-  }
-
+    if (deltaX < 0) { calSlider.style.transition = "transform 0.3s ease"; calSlider.style.transform = "translateX(-200vw)"; setTimeout(() => { document.getElementById("next").click(); calSlider.style.transition = "none"; calSlider.style.transform = "translateX(-100vw)"; }, 300); }
+    else { calSlider.style.transition = "transform 0.3s ease"; calSlider.style.transform = "translateX(0vw)"; setTimeout(() => { document.getElementById("prev").click(); calSlider.style.transition = "none"; calSlider.style.transform = "translateX(-100vw)"; }, 300); }
+  } else { calSlider.style.transition = "transform 0.3s ease"; calSlider.style.transform = "translateX(-100vw)"; }
   deltaX = 0;
 });
 
+// ===== Calculs liturgiques (identiques à l'original) =====
 function datePaques(year) {
-  // Algorithme de Meeus/Jones/Butcher
-  const a = year % 19;
-  const b = Math.floor(year / 100);
-  const c = year % 100;
-  const d = Math.floor(b / 4);
-  const e = b % 4;
-  const f = Math.floor((b + 8) / 25);
-  const g = Math.floor((b - f + 1) / 3);
-  const h = (19 * a + b - d - g + 15) % 30;
-  const i = Math.floor(c / 4);
-  const k = c % 4;
-  const l = (32 + 2 * e + 2 * i - h - k) % 7;
-  const m = Math.floor((a + 11 * h + 22 * l) / 451);
-  const month = Math.floor((h + l - 7 * m + 114) / 31); // 3=March, 4=April
-  const day = ((h + l - 7 * m + 114) % 31) + 1;
-  return { month, day }; // month: 3=March, 4=April
+  const a = year % 19, b = Math.floor(year / 100), c = year % 100, d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30, i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451);
+  return { month: Math.floor((h + l - 7 * m + 114) / 31), day: ((h + l - 7 * m + 114) % 31) + 1 };
 }
-
 function addDaysToDate(month, day, year, offset) {
-  // Ajoute offset jours à une date (mois: 1-12)
-  const date = new Date(year, month - 1, day);
-  date.setDate(date.getDate() + offset);
-  return { month: date.getMonth() + 1, day: date.getDate() };
+  const dt = new Date(year, month - 1, day); dt.setDate(dt.getDate() + offset); return { month: dt.getMonth() + 1, day: dt.getDate() };
 }
-
 function getFetesMobiles(year) {
-  const paques = datePaques(year);
-  let dSainteFamille = new Date(year, 11, 26); // 26 décembre
-
-  dSainteFamille.setDate(
-    dSainteFamille.getDate() + ((7 - dSainteFamille.getDay()) % 7)
-  );
-
-  // cas spécial si Noël est dimanche
-  let noel = new Date(year, 11, 25);
-  if (noel.getDay() === 0) {
-    dSainteFamille = new Date(year, 11, 30);
-  }
-  let dEpiphanie = new Date(year, 0, 2); // 2 janvier
-  dEpiphanie.setDate(dEpiphanie.getDate() + ((7 - dEpiphanie.getDay()) % 7)); // premier dimanche de janvier
-  let dBapteme = new Date(dEpiphanie);
-  dBapteme.setDate(dBapteme.getDate() + 7);
-
-  if (dEpiphanie.getDate() >= 7) {
-    dBapteme.setDate(dEpiphanie.getDate() + 1); // lundi
-  }
-
+  const p = datePaques(year);
+  let dSF = new Date(year, 11, 26); dSF.setDate(dSF.getDate() + ((7 - dSF.getDay()) % 7));
+  if (new Date(year, 11, 25).getDay() === 0) dSF = new Date(year, 11, 30);
+  let dEp = new Date(year, 0, 2); dEp.setDate(dEp.getDate() + ((7 - dEp.getDay()) % 7));
+  let dBap = new Date(dEp); dBap.setDate(dBap.getDate() + 7);
+  if (dEp.getDate() >= 7) dBap.setDate(dEp.getDate() + 1);
   return [
-    {
-      nom: "Miércoles de Ceniza",
-      date: addDaysToDate(paques.month, paques.day, year, -46) // 46 días antes de Pascua
-    },
-    {
-      nom: "Santa Maria junto a la Cruz",
-      date: addDaysToDate(paques.month, paques.day, year, -9) // 9 días antes de Pascua
-    },
-    {
-      nom: "Domingo de Ramos",
-      date: addDaysToDate(paques.month, paques.day, year, -7) // 1 semana antes de Pascua
-    },
-    {
-      nom: "Lunes Santo",
-      date: addDaysToDate(paques.month, paques.day, year, -6) // 6 días antes de Pascua
-    },
-    {
-      nom: "Martes Santo",
-      date: addDaysToDate(paques.month, paques.day, year, -5) // 5 días antes de Pascua
-    },
-    {
-      nom: "Miércoles Santo",
-      date: addDaysToDate(paques.month, paques.day, year, -4) // 4 días antes de Pascua
-    },
-    {
-      nom: "Jueves Santo",
-      date: addDaysToDate(paques.month, paques.day, year, -3) // 3 días antes de Pascua
-    },
-    {
-      nom: "Viernes Santo",
-      date: addDaysToDate(paques.month, paques.day, year, -2) // 2 días antes de Pascua
-    },
-    {
-      nom: "Sábado Santo",
-      date: addDaysToDate(paques.month, paques.day, year, -1) // 1 día antes de Pascua
-    },
-    {
-      nom: "Domingo de Resurrección",
-      date: addDaysToDate(paques.month, paques.day, year, 0) // Pascua
-    },
-    {
-      nom: "Divina Misericordia",
-      date: addDaysToDate(paques.month, paques.day, year, 7) // Pascua
-    },
-    {
-      nom: "Ascensión del Señor",
-      date: addDaysToDate(paques.month, paques.day, year, 39) // 40 días después de Pascua
-    },
-    {
-      nom: "Pentecostés",
-      date: addDaysToDate(paques.month, paques.day, year, 49) // 50 días después de Pascua
-    },
-    {
-      nom: "Santa Maria, Madre de la Iglesia",
-      date: addDaysToDate(paques.month, paques.day, year, 50) // Lunes de Pentecostés
-    },
-    {
-      nom: "Jesucristo, sumo y eterno sacerdote",
-      date: addDaysToDate(paques.month, paques.day, year, 53) // Jueves después de Pentecostés
-    },
-    {
-      nom: "La Santisima Trinidad",
-      date: addDaysToDate(paques.month, paques.day, year, 56) // domingo después de Pentecostés
-    },
-    {
-      nom: "Corpus Christi",
-      date: addDaysToDate(paques.month, paques.day, year, 60) // jueves después de la Trinidad
-    },
-    {
-      nom: "Sagrado Corazón de Jesús",
-      date: addDaysToDate(paques.month, paques.day, year, 61) // viernes después del Corpus Christi
-    },
-    {
-      nom: "Corazón Inmaculado de María",
-      date: addDaysToDate(paques.month, paques.day, year, 62) // sábado después del Sagrado Corazón
-    },
-    {
-      nom: "Cristo-Rey",
-      date: calculateCristoRey(year) // función especial para calcular el domingo antes del Adviento
-    },
-    {
-      nom: "Sagrada Familia",
-      date: dSainteFamille // domingo después de Noël
-    },
-    {
-      nom: "Epifania del Señor",
-      date: dEpiphanie // primer domingo de enero
-    },
-    {
-      nom: "Bautismo de Jesús",
-      date: dBapteme // domingo después de Epifania
-    }
+    { nom: "Miércoles de Ceniza", date: addDaysToDate(p.month, p.day, year, -46) },
+    { nom: "Santa Maria junto a la Cruz", date: addDaysToDate(p.month, p.day, year, -9) },
+    { nom: "Domingo de Ramos", date: addDaysToDate(p.month, p.day, year, -7) },
+    { nom: "Lunes Santo", date: addDaysToDate(p.month, p.day, year, -6) },
+    { nom: "Martes Santo", date: addDaysToDate(p.month, p.day, year, -5) },
+    { nom: "Miércoles Santo", date: addDaysToDate(p.month, p.day, year, -4) },
+    { nom: "Jueves Santo", date: addDaysToDate(p.month, p.day, year, -3) },
+    { nom: "Viernes Santo", date: addDaysToDate(p.month, p.day, year, -2) },
+    { nom: "Sábado Santo", date: addDaysToDate(p.month, p.day, year, -1) },
+    { nom: "Domingo de Resurrección", date: addDaysToDate(p.month, p.day, year, 0) },
+    { nom: "Divina Misericordia", date: addDaysToDate(p.month, p.day, year, 7) },
+    { nom: "Ascensión del Señor", date: addDaysToDate(p.month, p.day, year, 39) },
+    { nom: "Pentecostés", date: addDaysToDate(p.month, p.day, year, 49) },
+    { nom: "Santa Maria, Madre de la Iglesia", date: addDaysToDate(p.month, p.day, year, 50) },
+    { nom: "Jesucristo, sumo y eterno sacerdote", date: addDaysToDate(p.month, p.day, year, 53) },
+    { nom: "La Santisima Trinidad", date: addDaysToDate(p.month, p.day, year, 56) },
+    { nom: "Corpus Christi", date: addDaysToDate(p.month, p.day, year, 60) },
+    { nom: "Sagrado Corazón de Jesús", date: addDaysToDate(p.month, p.day, year, 61) },
+    { nom: "Corazón Inmaculado de María", date: addDaysToDate(p.month, p.day, year, 62) },
+    { nom: "Cristo-Rey", date: calculateCristoRey(year) },
+    { nom: "Sagrada Familia", date: { month: dSF.getMonth() + 1, day: dSF.getDate() } },
+    { nom: "Epifania del Señor", date: { month: dEp.getMonth() + 1, day: dEp.getDate() } },
+    { nom: "Bautismo de Jesús", date: { month: dBap.getMonth() + 1, day: dBap.getDate() } }
   ];
 }
-
 function calculateCristoRey(year) {
-  // Date de Noël
-  const christmas = new Date(year, 11, 25); // 25 décembre
-
-  // Trouver le 1er dimanche de l’Avent (4e dimanche avant Noël)
-  let adventSunday = new Date(christmas);
-  // reculer de 28 jours (4 semaines)
-  adventSunday.setDate(christmas.getDate() - 28);
-  // ajuster pour tomber sur un dimanche
-  const dayOfWeek = adventSunday.getDay(); // 0 = dimanche
-  adventSunday.setDate(adventSunday.getDate() + (0 - dayOfWeek + 7) % 7);
-
-  // Cristo Rey = dimanche précédent
-  const cristoRey = new Date(adventSunday);
-  cristoRey.setDate(adventSunday.getDate() - 7);
-
-  return { month: cristoRey.getMonth() + 1, day: cristoRey.getDate() };
+  const xmas = new Date(year, 11, 25); let adv = new Date(xmas); adv.setDate(xmas.getDate() - 28); adv.setDate(adv.getDate() + (0 - adv.getDay() + 7) % 7);
+  const cr = new Date(adv); cr.setDate(adv.getDate() - 7); return { month: cr.getMonth() + 1, day: cr.getDate() };
 }
-
 function getTempsLiturgique(year, mois, jour) {
-  const paques = datePaques(year);
-
-  // Mercredi des Cendres = 46 jours avant Pâques
-  const caremeDebut = addDaysToDate(paques.month, paques.day, year, -46);
-  const dCaremeDebut = new Date(year, caremeDebut.month - 1, caremeDebut.day);
-
-  // Premier dimanche de Carême
-  let premierDimancheCareme = new Date(dCaremeDebut);
-  premierDimancheCareme.setDate(dCaremeDebut.getDate() + ((7 - dCaremeDebut.getDay()) % 7));
-
-  // Semaine Sainte = du dimanche avant Pâques à Pâques
-  const semaineSainteDebut = addDaysToDate(paques.month, paques.day, year, -7);
-  const dSemaineSainteDebut = new Date(year, semaineSainteDebut.month - 1, semaineSainteDebut.day);
-
-  // Temps Pascal = de Pâques à Pentecôte (49 jours)
-  const dPaques = new Date(year, paques.month - 1, paques.day);
-  const pentecote = addDaysToDate(paques.month, paques.day, year, 49);
-  const dPentecote = new Date(year, pentecote.month - 1, pentecote.day);
-  const octavePaques = addDaysToDate(paques.month, paques.day, year, 7);
-  const dOctavePaques = new Date(year, octavePaques.month - 1, octavePaques.day);
-
-  // Noël : du 25 décembre au Baptême du Seigneur (dimanche après le 6 janvier)
+  const p = datePaques(year);
+  const carD = addDaysToDate(p.month, p.day, year, -46); const dCar = new Date(year, carD.month - 1, carD.day);
+  let pDimCar = new Date(dCar); pDimCar.setDate(dCar.getDate() + ((7 - dCar.getDay()) % 7));
+  const sSD = addDaysToDate(p.month, p.day, year, -7); const dSSDebut = new Date(year, sSD.month - 1, sSD.day);
+  const dPaques = new Date(year, p.month - 1, p.day);
+  const pent = addDaysToDate(p.month, p.day, year, 49); const dPent = new Date(year, pent.month - 1, pent.day);
+  const octP = addDaysToDate(p.month, p.day, year, 7); const dOctP = new Date(year, octP.month - 1, octP.day);
   const dNoel = new Date(year, 11, 25);
-  let dEpiphanie = new Date(year, 0, 2); // 2 janvier
-  dEpiphanie.setDate(dEpiphanie.getDate() + ((7 - dEpiphanie.getDay()) % 7)); // premier dimanche 
-
-  let dBapteme = new Date(dEpiphanie);
-  dBapteme.setDate(dBapteme.getDate() + 7);
-
-  if (dEpiphanie.getDate() >= 7) {
-    dBapteme.setDate(dEpiphanie.getDate() + 1); // lundi
-  }
-
-  // Avent : commence 4 dimanches avant Noël
-  let premierDimancheAvent = new Date(dNoel);
-  premierDimancheAvent.setDate(dNoel.getDate() - ((dNoel.getDay() === 0 ? 0 : dNoel.getDay()) + 21));
-
-  // Temps ordinaire 1 : du lundi après Baptême du Seigneur au mardi avant Carême
-  let ordinaire1Debut = new Date(dBapteme);
-  ordinaire1Debut.setDate(dBapteme.getDate() + 1); // lundi après Baptême
-  let ordinaire1Fin = new Date(dCaremeDebut);
-  ordinaire1Fin.setDate(dCaremeDebut.getDate() - 1);
-
-  // Temps ordinaire 2 : du lundi après Pentecôte à l'Avent
-  let ordinaire2Debut = new Date(dPentecote);
-  ordinaire2Debut.setDate(dPentecote.getDate() + 1);
-  let ordinaire2Fin = new Date(premierDimancheAvent);
-
-  // Date du jour
+  let dEp = new Date(year, 0, 2); dEp.setDate(dEp.getDate() + ((7 - dEp.getDay()) % 7));
+  let dBap = new Date(dEp); dBap.setDate(dBap.getDate() + 7); if (dEp.getDate() >= 7) dBap.setDate(dEp.getDate() + 1);
+  let pDA = new Date(dNoel); pDA.setDate(dNoel.getDate() - ((dNoel.getDay() === 0 ? 0 : dNoel.getDay()) + 21));
+  let o1D = new Date(dBap); o1D.setDate(dBap.getDate() + 1);
+  let o1F = new Date(dCar); o1F.setDate(dCar.getDate() - 1);
+  let o2D = new Date(dPent); o2D.setDate(dPent.getDate() + 1);
+  let o2F = new Date(pDA);
   const d = new Date(year, mois - 1, jour);
 
-  // Avent
-  if (d >= premierDimancheAvent && d < dNoel) {
-    const diffDays = Math.floor((d - premierDimancheAvent) / (1000 * 60 * 60 * 24));
-    const semaineAvent = Math.floor(diffDays / 7) + 1;
-    return { nom: "° semana del Adviento", numero: Math.max(1, semaineAvent), psalterio: romanWeek[semaineAvent - 1] };
+  if (d >= pDA && d < dNoel) { const dif = Math.floor((d - pDA) / 864e5), s = Math.floor(dif / 7) + 1; return { nom: "° semana del Adviento", numero: Math.max(1, s), psalterio: romanWeek[s - 1] }; }
+  if (d >= dNoel || d <= dBap) { const dif = Math.floor((d - pDA) / 864e5); return { nom: "Navidad", numero: "", psalterio: romanWeek[Math.floor(dif / 7) % 4] }; }
+  if (d >= o1D && d <= o1F) { let pDO = new Date(o1D); pDO.setDate(o1D.getDate() + (7 - o1D.getDay()) % 7); if (d < pDO) return { nom: "° semana del Tiempo Ordinario", numero: 1, psalterio: "I" }; const dif = Math.floor((d - pDO) / 864e5), s = Math.floor(dif / 7) + 2; return { nom: "° semana del Tiempo Ordinario", numero: s, psalterio: romanWeek[(s - 1) % 4] }; }
+  if (d >= dCar && d < pDimCar) { return { nom: " de Cenizas", numero: joursSemaine[d.getDay()], psalterio: romanWeek[3] }; }
+  if (d >= pDimCar && d < dSSDebut) { const dif = Math.floor((d - pDimCar) / 864e5), s = Math.floor(dif / 7) + 1; return { nom: "° semana de Cuaresma", numero: Math.max(1, s), psalterio: romanWeek[(s - 1) % 4] }; }
+  if (d >= dSSDebut && d < dPaques) { const dif = Math.floor((d - pDimCar) / 864e5), s = Math.floor(dif / 7) + 1; return { nom: "Semana Santa", numero: "", psalterio: romanWeek[(s - 1) % 4] }; }
+  if (d >= dPaques && d <= dOctP) { const dif = Math.floor((d - dPaques) / 864e5), s = Math.floor(dif / 7) + 1; return { nom: "Octava de Pascua", numero: "", psalterio: romanWeek[(s - 1) % 4] }; }
+  if (d > dOctP && d <= dPent) { const dif = Math.floor((d - dPaques) / 864e5), s = Math.floor(dif / 7) + 1; return { nom: "° semana del Tiempo Pascual", numero: Math.max(1, s), psalterio: romanWeek[(s - 1) % 4] }; }
+  if (d >= o2D && d < o2F) {
+    let pDO1 = new Date(o1D); pDO1.setDate(o1D.getDate() + ((7 - o1D.getDay()) % 7 || 7));
+    let uDO1 = new Date(o1F); uDO1.setDate(o1F.getDate() - o1F.getDay());
+    const sO1 = ((uDO1 - pDO1) / 864e5 / 7) + 2;
+    let pDO2 = new Date(o2D); pDO2.setDate(o2D.getDate() + 6);
+    if (d < pDO2) return { nom: "° semana del Tiempo Ordinario", numero: sO1 + 2, psalterio: romanWeek[(sO1 + 1) % 4] };
+    const dif = Math.round((new Date(d.getFullYear(), d.getMonth(), d.getDate()) - new Date(pDO2.getFullYear(), pDO2.getMonth(), pDO2.getDate())) / 864e5);
+    const s = Math.floor(dif / 7) + sO1 + 3; return { nom: "° semana del Tiempo Ordinario", numero: s, psalterio: romanWeek[(s - 1) % 4] };
   }
-  // Noël (du 25 décembre au Baptême du Seigneur inclus)
-  if (d >= dNoel || d <= dBapteme) {
-    const diffDays = Math.floor((d - premierDimancheAvent) / (1000 * 60 * 60 * 24));
-    const week = Math.floor(diffDays / 7) % 4; // psautier 0-3
-    return { nom: "Navidad", numero: "", psalterio: romanWeek[week] };
-  }
-  // Temps ordinaire 1
-  if (d >= ordinaire1Debut && d <= ordinaire1Fin) {
-    // Premier dimanche du Temps Ordinaire 1
-    let premierDimancheOrdinaire = new Date(ordinaire1Debut);
-    premierDimancheOrdinaire.setDate(ordinaire1Debut.getDate() + (7 - ordinaire1Debut.getDay()) % 7);
-
-    if (d < premierDimancheOrdinaire) {
-      // Avant le premier dimanche : semaine 1 (lundi-samedi)
-      return { nom: "° semana del Tiempo Ordinario", numero: 1, psalterio: "I" };
-    } else {
-      // À partir du premier dimanche, semaine = 2 + nombre de semaines écoulées depuis ce dimanche
-      const diffDays = Math.floor((d - premierDimancheOrdinaire) / (1000 * 60 * 60 * 24));
-      const semaine = Math.floor(diffDays / 7) + 2;
-      return { nom: "° semana del Tiempo Ordinario", numero: semaine, psalterio: romanWeek[(semaine - 1) % 4] };
-    }
-  }
-  // Jours de Cendres
-  if (d >= dCaremeDebut && d < premierDimancheCareme) {
-    const jourCendres = d.getDay();
-    return { nom: " de Cenizas", numero: joursSemaine[jourCendres], psalterio: romanWeek[3] };
-  }
-  // Carême (semaines commençant le dimanche)
-  if (d >= premierDimancheCareme && d < dSemaineSainteDebut) {
-    const diffDays = Math.floor((d - premierDimancheCareme) / (1000 * 60 * 60 * 24));
-    const semaineCareme = Math.floor(diffDays / 7) + 1;
-    return { nom: "° semana de Cuaresma", numero: Math.max(1, semaineCareme), psalterio: romanWeek[(semaineCareme - 1) % 4] };
-  }
-  // Semaine Sainte
-  if (d >= dSemaineSainteDebut && d < dPaques) {
-    const diffDays = Math.floor((d - premierDimancheCareme) / (1000 * 60 * 60 * 24));
-    const semaineCareme = Math.floor(diffDays / 7) + 1;
-    return { nom: "Semana Santa", numero: "", psalterio: romanWeek[(semaineCareme - 1) % 4] };
-  }
-  // Octave de Pâques
-  if (d >= dPaques && d <= dOctavePaques) {
-    const diffDays = Math.floor((d - dPaques) / (1000 * 60 * 60 * 24));
-    const semainePascal = Math.floor(diffDays / 7) + 1;
-    return { nom: "Octava de Pascua", numero: "", psalterio: romanWeek[(semainePascal - 1) % 4] };
-  }
-  // Temps Pascal
-  if (d > dOctavePaques && d <= dPentecote) {
-    const diffDays = Math.floor((d - dPaques) / (1000 * 60 * 60 * 24));
-    const semainePascal = Math.floor(diffDays / 7) + 1;
-    return { nom: "° semana del Tiempo Pascual", numero: Math.max(1, semainePascal), psalterio: romanWeek[(semainePascal - 1) % 4] };
-  }
-  // Temps ordinaire 2
-  if (d >= ordinaire2Debut && d < ordinaire2Fin) {
-    // Premier dimanche du Temps Ordinaire 1
-    let premierDimancheOrd1 = new Date(ordinaire1Debut);
-    premierDimancheOrd1.setDate(ordinaire1Debut.getDate() + ((7 - ordinaire1Debut.getDay()) % 7 || 7));
-    // Dernier dimanche du Temps Ordinaire 1 (avant Carême)
-    let dernierDimancheOrd1 = new Date(ordinaire1Fin);
-    dernierDimancheOrd1.setDate(ordinaire1Fin.getDate() - ordinaire1Fin.getDay());
-
-    // Nombre de semaines du Temps Ordinaire 1
-    const semainesOrd1 = ((dernierDimancheOrd1 - premierDimancheOrd1) / (1000 * 60 * 60 * 24 * 7)) + 2;
-
-    // Premier dimanche du Temps Ordinaire 2
-    let premierDimancheOrd2 = new Date(ordinaire2Debut);
-    premierDimancheOrd2.setDate(ordinaire2Debut.getDate() + 6);
-
-    if (d < premierDimancheOrd2) {
-      // Avant le premier dimanche : semaine suivante du temps ordinaire 1 (lundi-samedi)
-      return { nom: "° semana del Tiempo Ordinario", numero: semainesOrd1 + 2, psalterio: romanWeek[(semainesOrd1 + 1) % 4] };
-    } else {
-      // À partir du premier dimanche, semaine = suite de la numérotation
-      const d0 = toMinuit(d);
-      const d1 = toMinuit(premierDimancheOrd2);
-      const diffDays = Math.round((d0 - d1) / (1000 * 60 * 60 * 24));
-      const semaine = Math.floor(diffDays / 7) + semainesOrd1 + 3;
-      return { nom: "° semana del Tiempo Ordinario", numero: semaine, psalterio: romanWeek[(semaine - 1) % 4] };
-    }
-  }
-  // Sinon, temps ordinaire (par défaut)
-  return { nom: "Error al calcular el tiempo liturgico", numero: "" };
+  return { nom: "Tiempo Ordinario", numero: "", psalterio: "I" };
 }
 
-function toMinuit(date) {
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
-}
-
-const editBtn = document.getElementById('editBtn');
-const editFormContainer = document.getElementById('editFormContainer');
-const cancelBtn = document.getElementById('cancelBtn');
-const infos = document.getElementById('contenu-container')
-const form = document.getElementById('inputsContainer');
-
-// const jsonInput = document.getElementById('jsonInput');
-
-function showToast(msg, { duration = 2000, background = "green", gravity = "bottom", borderRadius = "70px", position = "center", padding = "10px 50px" } = {}) {
-  Toastify({
-    text: msg,
-    duration: duration,
-    gravity: gravity,
-    position: position,
-    style: { background, borderRadius, padding }
-  }).showToast();
-};
-
-// Quand on clique sur “Modifier”
+// ===== Edition =====
+const editBtn = document.getElementById('editBtn'), editFormContainer = document.getElementById('editFormContainer'), cancelBtn = document.getElementById('cancelBtn'), infos = document.getElementById('contenu-container'), form = document.getElementById('inputsContainer');
+function showToast(msg, { duration = 2000, background = "green", gravity = "bottom", borderRadius = "70px", position = "center", padding = "10px 50px" } = {}) { Toastify({ text: msg, duration, gravity, position, style: { background, borderRadius, padding } }).showToast(); }
 editBtn.addEventListener('click', async () => {
-  const password = prompt("🔒 Entrar clave para modificar datos :");
-  if (!password) return;
-
-  // On envoie le mot de passe à une Netlify Function pour vérification
-  const res = await fetch("/.netlify/functions/check-password", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ password })
-  });
+  const pw = prompt("🔒 Entrar clave para modificar datos :"); if (!pw) return;
+  const res = await fetch("/.netlify/functions/check-password", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ password: pw }) });
   const data = await res.json();
-
   if (data.valid) {
-    showToast("✅ Acceso autorizado");
-    // Remplir le textarea avec les données du jour uniquement
-    // jsonInput.value = JSON.stringify(tableau[indexCourant], null, 2);
-    editFormContainer.style.display = 'block';
-    editBtn.style.display = 'none';
-    infos.style.display = 'none';
-
-    // Génération dynamique
-    for (const [key, value] of Object.entries(itemAff)) {
-      const label = document.createElement('label');
-      label.textContent = key;
-      label.className = 'detail-title'
-
-      const input = document.createElement('textarea');
-      input.rows = 1;
-      input.name = key;
-      input.value = value;
-      input.className = 'detail-box';
-
-      if (key === "Fechas") {
-        input.readOnly = true;
-        input.style.backgroundColor = "#c1c1c1";
-      }
-      label.appendChild(document.createElement('br'));
-      label.appendChild(input);
-      form.appendChild(label);
-      form.appendChild(document.createElement('br'));
-      input.style.height = input.scrollHeight + "px";
-
-    }
-
-
-  } else {
-    showToast("❌ Clave incorrecta", { background: "red" });
-  }
+    showToast("✅ Acceso autorizado"); editFormContainer.style.display = 'block'; editBtn.style.display = 'none'; infos.style.display = 'none';
+    for (const [key, value] of Object.entries(itemAff)) { const lbl = document.createElement('label'); lbl.textContent = key; lbl.className = 'detail-title'; const inp = document.createElement('textarea'); inp.rows = 1; inp.name = key; inp.value = value; inp.className = 'detail-box'; if (key === "Fechas") { inp.readOnly = true; inp.style.backgroundColor = "#c1c1c1"; } lbl.appendChild(document.createElement('br')); lbl.appendChild(inp); form.appendChild(lbl); form.appendChild(document.createElement('br')); inp.style.height = inp.scrollHeight + "px"; }
+  } else { showToast("❌ Clave incorrecta", { background: "red" }); }
 });
-
-// Annuler
-cancelBtn.addEventListener('click', () => {
-  form.innerHTML = ''; // supprime tout le contenu du formulaire
-  editFormContainer.style.display = 'none';
-  editBtn.style.display = 'block';
-  infos.style.display = 'block';
+cancelBtn.addEventListener('click', () => { form.innerHTML = ''; editFormContainer.style.display = 'none'; editBtn.style.display = 'block'; infos.style.display = 'block'; });
+document.getElementById('editForm').addEventListener('submit', async (e) => {
+  e.preventDefault(); const nd = Object.fromEntries(new FormData(document.getElementById('editForm')).entries());
+  tableau[indexAff] = nd; jsonData.data = tableau; jsonData.version = new Date().toISOString();
+  const r = await fetch('/.netlify/functions/update-json', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ jsonData }) });
+  const res = await r.json(); if (res.success) showToast('Actualización exitosa !'); else showToast('Error : ' + res.error, { background: 'red' });
+  editFormContainer.style.display = 'none'; editBtn.style.display = 'block'; infos.style.display = 'block'; form.innerHTML = '';
 });
-
-const editForm = document.getElementById('editForm');
-editForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const formData = new FormData(editForm);
-  const newDayData = Object.fromEntries(formData.entries());
-  // Mettre à jour le JSON global localement
-  tableau[indexAff] = newDayData;
-  jsonData.data = tableau; // mettre à jour l’objet global
-  jsonData.version = new Date().toISOString(); // mettre à jour la version
-  // Envoyer à la Netlify Function
-  const response = await fetch('/.netlify/functions/update-json', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ jsonData })
-  });
-
-  const result = await response.json();
-  if (result.success) {
-    showToast('Actualización exitosa !');
-
-  } else {
-    show('Error : ' + result.error, { backgroundColor: 'red' });
-  }
-  editFormContainer.style.display = 'none';
-  editBtn.style.display = 'block';
-  infos.style.display = 'block';
-  form.innerHTML = '';
-}); 
