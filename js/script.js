@@ -1,6 +1,6 @@
 // ===== CONFIG PAYS / LANGUE =====
 const PAYS_CONFIG = {
-  es: { code: "ES", label: "España",
+  es: { code: "CL", label: "Chile",
     moisNoms: ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"],
     joursSemaine: ["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"], hoy: "Hoy" },
   fr: { code: "FR", label: "France",
@@ -13,18 +13,83 @@ const pays = getPays();
 const lang = PAYS_CONFIG[pays];
 const moisNoms = lang.moisNoms;
 
-function initBottomBar() {
-  const sel = document.getElementById("country-select");
-  if (sel) {
-    Object.entries(PAYS_CONFIG).forEach(([code, p]) => {
-      const opt = document.createElement("option");
-      opt.value = code;
-      opt.textContent = `${p.code}  ${p.label}`;
-      if (code === pays) opt.selected = true;
-      sel.appendChild(opt);
-    });
-    sel.onchange = () => { setPays(sel.value); location.reload(); };
+function getFlagSvg(code) {
+  if (code === "es") {
+    return `
+      <svg viewBox="0 0 60 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <rect width="60" height="40" fill="#d52b1e"/>
+        <rect width="60" height="20" fill="#ffffff"/>
+        <rect width="30" height="20" fill="#0039a6"/>
+        <polygon points="15,6 16.5,10 21,10 17.75,12.75 18.75,17 15,14 11.25,17 12.25,12.75 9,10 13.5,10" fill="#ffffff"/>
+      </svg>`;
   }
+  if (code === "fr") {
+    return `
+      <svg viewBox="0 0 60 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <rect width="20" height="40" fill="#0055a4"/>
+        <rect x="20" width="20" height="40" fill="#ffffff"/>
+        <rect x="40" width="20" height="40" fill="#ef4135"/>
+      </svg>`;
+  }
+  return "";
+}
+
+function initCountrySelector() {
+  const container = document.getElementById("country-select");
+  if (!container) return;
+
+  const selected = PAYS_CONFIG[pays];
+  container.innerHTML = `
+    <div class="country-display" tabindex="0" aria-haspopup="listbox" aria-expanded="false">
+      <span class="country-flag">${getFlagSvg(pays)}</span>
+      <span class="country-label">${selected.label}</span>
+      <span class="country-arrow">▾</span>
+    </div>
+    <div class="country-options hidden" role="listbox">
+      ${Object.entries(PAYS_CONFIG).map(([code, p]) => `
+        <div class="country-option ${code === pays ? 'selected' : ''}" data-country="${code}" role="option">
+          <span class="country-flag">${getFlagSvg(code)}</span>
+          <span class="country-label">${p.label}</span>
+        </div>
+      `).join('')}
+    </div>
+  `;
+
+  const display = container.querySelector('.country-display');
+  const options = container.querySelector('.country-options');
+
+  const closeOptions = () => {
+    options.classList.add('hidden');
+    display.setAttribute('aria-expanded', 'false');
+  };
+
+  const openOptions = () => {
+    options.classList.remove('hidden');
+    display.setAttribute('aria-expanded', 'true');
+  };
+
+  display.addEventListener('click', event => {
+    event.stopPropagation();
+    if (options.classList.contains('hidden')) openOptions(); else closeOptions();
+  });
+
+  container.querySelectorAll('.country-option').forEach(option => {
+    option.addEventListener('click', () => {
+      const code = option.getAttribute('data-country');
+      if (code && code !== pays) {
+        setPays(code);
+        location.reload();
+      }
+    });
+  });
+
+  document.addEventListener('click', event => {
+    if (!container.contains(event.target)) closeOptions();
+  });
+}
+
+function initBottomBar() {
+  initCountrySelector();
   const btn = document.getElementById("today");
   if (btn) btn.textContent = lang.hoy;
   const jsSem = document.getElementById("jours-semaine");

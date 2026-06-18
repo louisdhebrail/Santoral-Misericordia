@@ -4,8 +4,8 @@
 // - vérification en arrière-plan: compare uniquement le champ "version" du JSON (si présent)
 // - n'interfère pas avec les ressources cross-origin, le manifest, ni les autres Netlify functions
 
-const CACHE_NAME = "pwa-cache-v5";
-const DATA_CACHE = "data-cache-v1";
+const CACHE_NAME = "pwa-cache-v6";
+const DATA_CACHE = "data-cache-v2";
 const DATA_URL = "/.netlify/functions/get-json";
 
 const urlsToCache = [
@@ -21,8 +21,9 @@ const urlsToCache = [
     "/media/web-app-manifest-192x192.png",
     "/media/web-app-manifest-512x512.png",
     "/media/logomisericordia.png",
-    "/favicon.ico",
-    "/media/edit.png"
+    "/media/back.png",
+    "/media/edit.png",
+    "/favicon.ico"
 ];
 
 function cleanRequest(request) {
