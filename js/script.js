@@ -1,7 +1,36 @@
-const moisNoms = [
-    "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
-];
+// ===== CONFIG PAYS / LANGUE =====
+const PAYS_CONFIG = {
+  es: { code: "ES", label: "España",
+    moisNoms: ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"],
+    joursSemaine: ["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"], hoy: "Hoy" },
+  fr: { code: "FR", label: "France",
+    moisNoms: ["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"],
+    joursSemaine: ["Dim","Lun","Mar","Mer","Jeu","Ven","Sam"], hoy: "Auj." },
+};
+function getPays() { return localStorage.getItem("santoral_pays") || "es"; }
+function setPays(code) { localStorage.setItem("santoral_pays", code); }
+const pays = getPays();
+const lang = PAYS_CONFIG[pays];
+const moisNoms = lang.moisNoms;
+
+function initBottomBar() {
+  const sel = document.getElementById("country-select");
+  if (sel) {
+    Object.entries(PAYS_CONFIG).forEach(([code, p]) => {
+      const opt = document.createElement("option");
+      opt.value = code;
+      opt.textContent = `${p.code}  ${p.label}`;
+      if (code === pays) opt.selected = true;
+      sel.appendChild(opt);
+    });
+    sel.onchange = () => { setPays(sel.value); location.reload(); };
+  }
+  const btn = document.getElementById("today");
+  if (btn) btn.textContent = lang.hoy;
+  const jsSem = document.getElementById("jours-semaine");
+  if (jsSem) jsSem.innerHTML = lang.joursSemaine.map(j => `<div>${j}</div>`).join("");
+}
+document.addEventListener("DOMContentLoaded", initBottomBar);
 
 const params = new URLSearchParams(window.location.search);
 const dateParam = params.get("mois"); // format "MM-YYYY"
@@ -115,11 +144,7 @@ function afficherTousLesCalendriers(month, year) {
 
     // Affiche/cacher le bouton "Hoy"
     const todayBtn = document.getElementById("today");
-    if (month === today.getMonth() + 1 && year === today.getFullYear()) {
-        todayBtn.style.display = "none";
-    } else {
-        todayBtn.style.display = "block";
-    }
+    if (todayBtn) todayBtn.style.visibility = (month === today.getMonth() + 1 && year === today.getFullYear()) ? "hidden" : "visible";
 }
 document.getElementById('calendario-slider').style.transform = 'translateX(-100vw)';
 

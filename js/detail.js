@@ -1,11 +1,94 @@
+// ===== CONFIG PAYS / LANGUE =====
+const PAYS_CONFIG = {
+  es: {
+    code: "ES", label: "España",
+    joursSemaine: ["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"],
+    moisNoms: ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"],
+    champSaint: "Misericordia chile",
+    champBreviario: "En el Breviario Castellano",
+    champCelebration: "Celebración",
+    hoy: "Hoy",
+    breviarioLabel: "Breviario",
+    sinAyuno: "Sin ayuno",
+    dateFmt: (j, d, m) => `${j} ${d} de ${m}`,
+    octava: (j) => `${j} de la Octava de Pascua`,
+    solemnidad: "Solemnidad",
+    tempsTrads: {},
+  },
+  fr: {
+    code: "FR", label: "France",
+    joursSemaine: ["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"],
+    moisNoms: ["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"],
+    champSaint: "Misericordia France",
+    champBreviario: "Dans le bréviaire Francais",
+    champCelebration: "Célébration",
+    hoy: "Auj.",
+    breviarioLabel: "Bréviaire",
+    sinAyuno: "Sans jeûne",
+    dateFmt: (j, d, m) => `${j} ${d} ${m}`,
+    octava: (j) => `${j} de l'Octave de Pâques`,
+    solemnidad: "Solennité",
+    tempsTrads: {
+      "° semana del Adviento": "° sem. de l'Avent",
+      "Navidad": "Noël",
+      "° semana del Tiempo Ordinario": "° sem. du T. Ordinaire",
+      " de Cenizas": " des Cendres",
+      "° semana de Cuaresma": "° sem. de Carême",
+      "Semana Santa": "Semaine Sainte",
+      "Octava de Pascua": "Octave de Pâques",
+      "° semana del Tiempo Pascual": "° sem. du T. Pascal",
+      "Tiempo Ordinario": "Temps Ordinaire",
+    },
+  },
+};
+
+function getPays() { return localStorage.getItem("santoral_pays") || "es"; }
+function setPays(code) { localStorage.setItem("santoral_pays", code); }
+const pays = getPays();
+const lang = PAYS_CONFIG[pays];
+const joursSemaine = lang.joursSemaine;
+const moisNoms = lang.moisNoms;
+
+function traduireTemps(nom) {
+  if (!nom) return nom;
+  for (const [es, tr] of Object.entries(lang.tempsTrads)) {
+    if (nom.includes(es)) return nom.replace(es, tr);
+  }
+  return nom;
+}
+
+// Init barre du bas : sélecteur pays + texte boutons
+function initBottomBar() {
+  const sel = document.getElementById("country-select");
+  if (sel) {
+    Object.entries(PAYS_CONFIG).forEach(([code, p]) => {
+      const opt = document.createElement("option");
+      opt.value = code;
+      opt.textContent = `${p.code}  ${p.label}`;
+      if (code === pays) opt.selected = true;
+      sel.appendChild(opt);
+    });
+    sel.onchange = () => { setPays(sel.value); location.reload(); };
+  }
+  const todayBtn = document.getElementById("today");
+  if (todayBtn) todayBtn.textContent = lang.hoy;
+}
+document.addEventListener("DOMContentLoaded", initBottomBar);
+
+// Init bouton edit
+function initEditBtn() {
+  const btn = document.getElementById("editBtn");
+  if (!btn) return;
+  // style géré en CSS, juste s'assurer que le back-arrow n'est plus une img
+}
+document.addEventListener("DOMContentLoaded", initEditBtn);
+
 const params = new URLSearchParams(window.location.search);
 const dateParam = params.get("date");
 let [, , year] = dateParam.split("-").map(x => parseInt(x, 10));
 const today = new Date();
 const romanWeek = ["I", "II", "III", "IV"];
 
-const joursSemaine = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
-const moisNoms = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
 let jsonData = {};
 let tableau = [];
@@ -66,6 +149,13 @@ const celebStyles = {
   "l'avent": { bg: "#3d1a5c", color: "#e8d4ff" },
   "navidad": { bg: "#7a5200", color: "#fff3cc" },
   "tiempo pascual": { bg: "#0a4a2a", color: "#c0ffd8" },
+  "solennité": { bg: "#1a1a1a", color: "#FFD100" },
+  "fête": { bg: "#0d3a6e", color: "#cce0ff" },
+  "mémoire": { bg: "#0d4a26", color: "#b8f0d0" },
+  "férie": { bg: "#e4e0d4", color: "#555544" },
+  "semaine sainte": { bg: "#4a1010", color: "#ffd4d4" },
+  "carême": { bg: "#3d1a5c", color: "#e8d4ff" },
+  "temps pascal": { bg: "#0a4a2a", color: "#c0ffd8" },
 };
 
 function getCelebStyle(celStr) {
@@ -136,7 +226,7 @@ function afficherJour(index, annee, cibleID) {
 
   if (cibleID === "contenu-current") {
     const dateObj = new Date(annee, mois - 1, jour);
-    document.getElementById("dateLongue").textContent = `${joursSemaine[dateObj.getDay()]} ${jour} de ${moisNoms[mois - 1]}`;
+    document.getElementById("dateLongue").textContent = lang.dateFmt(joursSemaine[dateObj.getDay()], jour, moisNoms[mois - 1]);
     history.replaceState(null, "", `?date=${String(mois).padStart(2, "0")}-${String(jour).padStart(2, "0")}-${year}`);
     document.getElementById("back").onclick = () => { window.location.href = `index.html?mois=${mois}-${year}`; };
   }
@@ -173,11 +263,11 @@ function afficherJour(index, annee, cibleID) {
   const isWhite = colorHex === "#ffffff";
 
   // Breviario
-  let breviario = item["En el Breviario Castellano"] || "";
+  let breviario = item[lang.champBreviario] || item["En el Breviario Castellano"] || "";
   if (enOctava) {
-    breviario = itemEffectif["En el Breviario Castellano"] || "";
+    breviario = itemEffectif[lang.champBreviario] || itemEffectif["En el Breviario Castellano"] || "";
   } else if (!breviario || breviario.trim().toLowerCase().replace(/\s/g, '') === "delordinario") {
-    if (itemEffectif !== item) breviario = itemEffectif["En el Breviario Castellano"] || "";
+    if (itemEffectif !== item) breviario = itemEffectif[lang.champBreviario] || itemEffectif["En el Breviario Castellano"] || "";
   }
 
   // Ayuno : afficher uniquement si pas de jeûne
@@ -185,21 +275,21 @@ function afficherJour(index, annee, cibleID) {
 
   // Badge célébration
   const celStyle = enOctava
-    ? { bg: "#1a1a1a", color: "#FFD100", label: "Solemnidad" }
-    : getCelebStyle(item["Celebración"]);
+    ? { bg: "#1a1a1a", color: "#FFD100", label: lang.solemnidad }
+    : getCelebStyle(item[lang.champCelebration] || item["Celebración"]);
 
   // Nom affiché
   const dateObjNom = new Date(annee, mois - 1, jour);
   const nomAffiche = enOctava
-    ? `${joursSemaine[dateObjNom.getDay()]} de la Octava de Pascua`
-    : (item["Misericordia chile"] || '');
+    ? lang.octava(joursSemaine[dateObjNom.getDay()])
+    : (item[lang.champSaint] || item["Misericordia chile"] || '');
 
   document.getElementById(cibleID).innerHTML = `
     <div class="detail-container">
 
       <div class="top-row">
         <div class="temps-label">
-          <span>${temps.numero}</span>${temps.nom}
+          <span class="temps-num">${temps.numero}</span>${traduireTemps(temps.nom)}
           <span class="psalterio-pill">${temps.psalterio}</span>
         </div>
         <div class="color-dot" style="background:${colorHex};${isWhite ? 'border:2.5px solid #bbb;' : ''}"></div>
@@ -208,21 +298,21 @@ function afficherJour(index, annee, cibleID) {
       <div class="saint-card">
         <div class="saint-header">
           ${celStyle ? `<span class="cel-badge" style="background:${celStyle.bg};color:${celStyle.color}">${celStyle.label}</span>` : ''}
-          ${ayunoNo ? `<span class="ayuno-badge ayuno-no">Sin ayuno</span>` : ''}
+          ${ayunoNo ? `<span class="ayuno-badge ayuno-no">${lang.sinAyuno}</span>` : ''}
         </div>
         <div class="saint-name">${nomAffiche}</div>
       </div>
 
       ${breviario ? `
       <div class="info-card">
-        <div class="info-card-label">Breviario</div>
+        <div class="info-card-label">${lang.breviarioLabel}</div>
         <div class="info-card-text">${breviario}</div>
       </div>` : ''}
 
     </div>`;
 
   const todayBtn = document.getElementById("today");
-  todayBtn.style.display = (mois === today.getMonth() + 1 && jour === today.getDate()) ? "none" : "block";
+  if (todayBtn) todayBtn.style.visibility = (mois === today.getMonth() + 1 && jour === today.getDate()) ? "hidden" : "visible";
 }
 
 function afficherTousLesJours(index) {

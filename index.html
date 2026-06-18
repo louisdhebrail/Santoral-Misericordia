@@ -54,8 +54,7 @@
         <div id="next" style="font-size: 30px;font-weight: bold;">&gt;</div>
     </div>
 
-    <div id="jours-semaine">
-        <div>Dom</div>
+    <div id="jours-semaine"></div>
         <div>Lun</div>
         <div>Mar</div>
         <div>Mié</div>
@@ -71,7 +70,12 @@
             <div id="calendario-next"></div>
         </div>
     </div>
-    <div class="today-btn" id="today">Hoy</div>
+    <!-- Barre fixe en bas : sélecteur pays + aujourd'hui -->
+    <div class="bottom-bar" id="bottom-bar">
+        <div></div>
+        <select class="country-select" id="country-select"></select>
+        <button class="bar-btn" id="today">Hoy</button>
+    </div>
 
     <script src="js/script.js"></script>
 </body>

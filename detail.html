@@ -41,11 +41,14 @@
         </form>
     </div>
 
-    <div style="display: flex ; justify-content: space-around; bottom : 0px"><img
-            src="https://images.icon-icons.com/1673/PNG/512/arrowbackoutline_110825.png" alt="Back" id="back"
-            class="back-arrow">
-        <img src="./media/edit.png" id="editBtn">
-        <div class="today-btn" id="today">Hoy</div>
+    <!-- Bouton édition : discret, coin haut droit de la page -->
+    <button id="editBtn" class="edit-fab" title="Editar">✎</button>
+
+    <!-- Barre fixe en bas : retour + sélecteur pays + aujourd'hui -->
+    <div class="bottom-bar" id="bottom-bar">
+        <button class="bar-btn" id="back">&#8592;</button>
+        <select class="country-select" id="country-select"></select>
+        <button class="bar-btn" id="today">Hoy</button>
     </div>
 </body>
 <script src="js/detail.js"></script>
