@@ -2,8 +2,8 @@
 const PAYS_CONFIG = {
   es: {
     code: "ES", label: "España",
-    joursSemaine: ["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"],
-    moisNoms: ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"],
+    joursSemaine: ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"],
+    moisNoms: ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"],
     champSaint: "Misericordia chile",
     champBreviario: "En el Breviario Castellano",
     champCelebration: "Celebración",
@@ -16,9 +16,9 @@ const PAYS_CONFIG = {
     tempsTrads: {},
   },
   fr: {
-    code: "FR", label: "France",
-    joursSemaine: ["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"],
-    moisNoms: ["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"],
+    code: "\uD83C\uDDEB\uD83C\uDDF7", label: "France",
+    joursSemaine: ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"],
+    moisNoms: ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"],
     champSaint: "Misericordia France",
     champBreviario: "Dans le bréviaire Francais",
     champCelebration: "Célébration",
@@ -312,7 +312,7 @@ function afficherJour(index, annee, cibleID) {
     </div>`;
 
   const todayBtn = document.getElementById("today");
-  if (todayBtn) todayBtn.style.visibility = (mois === today.getMonth() + 1 && jour === today.getDate()) ? "hidden" : "visible";
+  if (todayBtn) todayBtn.style.visibility = (mois === today.getMonth() + 1 && jour === today.getDate() + 1) ? "hidden" : "visible";
 }
 
 function afficherTousLesJours(index) {
@@ -378,8 +378,8 @@ function getFetesMobiles(year) {
     { nom: "Jesucristo, sumo y eterno sacerdote", date: addDaysToDate(p.month, p.day, year, 53) },
     { nom: "La Santisima Trinidad", date: addDaysToDate(p.month, p.day, year, 56) },
     { nom: "Corpus Christi", date: addDaysToDate(p.month, p.day, year, 60) },
-    { nom: "Sagrado Corazón de Jesús", date: addDaysToDate(p.month, p.day, year, 61) },
-    { nom: "Corazón Inmaculado de María", date: addDaysToDate(p.month, p.day, year, 62) },
+    { nom: "Sagrado Corazón de Jesús", date: addDaysToDate(p.month, p.day, year, 68) },
+    { nom: "Corazón Inmaculado de María", date: addDaysToDate(p.month, p.day, year, 69) },
     { nom: "Cristo-Rey", date: calculateCristoRey(year) },
     { nom: "Sagrada Familia", date: { month: dSF.getMonth() + 1, day: dSF.getDate() } },
     { nom: "Epifania del Señor", date: { month: dEp.getMonth() + 1, day: dEp.getDate() } },
